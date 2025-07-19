@@ -5,8 +5,10 @@ import './App.css';
 
 function App() {
   const [imgSrc, setImgSrc] = useState(null);
-  const [width, setWidth] = useState(300);
-  const [height, setHeight] = useState(300);
+  const [width, setWidth] = useState('300');
+  const [height, setHeight] = useState('300');
+  const [keepRatio, setKeepRatio] = useState(true);
+  const [ratio, setRatio] = useState(1);
   const [fileName, setFileName] = useState('image');
   const [svgCode, setSvgCode] = useState('');
   const [showSvgCode, setShowSvgCode] = useState(false);
@@ -19,8 +21,9 @@ function App() {
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        setWidth(img.width);
-        setHeight(img.height);
+        setWidth(String(img.width));
+        setHeight(String(img.height));
+        setRatio(img.width / img.height);
         setImgSrc(reader.result);
       };
       img.src = reader.result;
@@ -28,16 +31,52 @@ function App() {
     reader.readAsDataURL(file);
   };
 
+  const handleWidthChange = (e) => {
+    const value = e.target.value;
+    if (keepRatio && value !== '') {
+      const num = parseInt(value);
+      if (!isNaN(num)) {
+        setHeight(String(Math.round(num / ratio)));
+      }
+    }
+    setWidth(value);
+  };
+
+  const handleKeepRatioChange = (e) => {
+    const checked = e.target.checked;
+    if (checked) {
+      const w = parseInt(width);
+      const h = parseInt(height);
+      if (!isNaN(w) && !isNaN(h) && h !== 0) {
+        setRatio(w / h);
+      }
+    }
+    setKeepRatio(checked);
+  };
+
+  const handleHeightChange = (e) => {
+    const value = e.target.value;
+    if (keepRatio && value !== '') {
+      const num = parseInt(value);
+      if (!isNaN(num)) {
+        setWidth(String(Math.round(num * ratio)));
+      }
+    }
+    setHeight(value);
+  };
+
   const drawImageToCanvas = (w = width, h = height) => {
+    const wNum = parseInt(w);
+    const hNum = parseInt(h);
     return new Promise((resolve) => {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
       const img = new Image();
       img.onload = () => {
-        canvas.width = w;
-        canvas.height = h;
-        ctx.clearRect(0, 0, w, h);
-        ctx.drawImage(img, 0, 0, w, h);
+        canvas.width = wNum;
+        canvas.height = hNum;
+        ctx.clearRect(0, 0, wNum, hNum);
+        ctx.drawImage(img, 0, 0, wNum, hNum);
         resolve();
       };
       img.src = imgSrc;
@@ -156,14 +195,22 @@ function App() {
         <>
           <div className="controls">
             <label>
-              Width: <input type="number" value={width} onChange={(e) => setWidth(parseInt(e.target.value) || 0)} />
+              Width: <input type="number" value={width} onChange={handleWidthChange} />
             </label>
             <label>
-              Height: <input type="number" value={height} onChange={(e) => setHeight(parseInt(e.target.value) || 0)} />
+              Height: <input type="number" value={height} onChange={handleHeightChange} />
+            </label>
+            <label>
+              <input type="checkbox" checked={keepRatio} onChange={handleKeepRatioChange} /> Keep ratio
             </label>
             <label>
               File name: <input type="text" value={fileName} onChange={(e) => setFileName(e.target.value)} />
             </label>
+          </div>
+          <div className="presets">
+            <button onClick={() => { setWidth('512'); setHeight('512'); }}>512x512</button>
+            <button onClick={() => { setWidth('196'); setHeight('196'); }}>196x196</button>
+            <button onClick={() => { setWidth('64'); setHeight('64'); }}>64x64</button>
           </div>
           <img src={imgSrc} alt="preview" className="preview fade-in" />
           <div className="buttons">
