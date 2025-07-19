@@ -29,6 +29,7 @@
 
 .preview-stack {
   margin-top: 1em;
+  margin-bottom: 0.5em;
   position: relative;
   display: inline-block;
   width: 300px;
@@ -68,6 +69,11 @@
   display: flex;
   justify-content: center;
   gap: 1em;
+}
+
+.next-btn {
+  display: block;
+  margin: 0.5em auto;
 }
 
 .svg-code-container {
