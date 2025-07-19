@@ -1,0 +1,25 @@
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.controls {
+  margin: 1em 0;
+  display: flex;
+  justify-content: center;
+  gap: 1em;
+}
+
+.preview {
+  max-width: 100%;
+  margin-top: 1em;
+}
+
+.buttons {
+  margin-top: 1em;
+  display: flex;
+  justify-content: center;
+  gap: 1em;
+}
