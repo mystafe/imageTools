@@ -25,16 +25,16 @@ function App() {
     reader.readAsDataURL(file);
   };
 
-  const drawImageToCanvas = () => {
+  const drawImageToCanvas = (w = width, h = height) => {
     return new Promise((resolve) => {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
       const img = new Image();
       img.onload = () => {
-        canvas.width = width;
-        canvas.height = height;
-        ctx.clearRect(0, 0, width, height);
-        ctx.drawImage(img, 0, 0, width, height);
+        canvas.width = w;
+        canvas.height = h;
+        ctx.clearRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
         resolve();
       };
       img.src = imgSrc;
@@ -86,6 +86,44 @@ function App() {
     }, 'image/x-icon');
   };
 
+  const downloadReactAssets = async () => {
+    if (!imgSrc) return;
+    const assets = [
+      { width: 512, height: 512, name: 'logo512.png', type: 'image/png' },
+      { width: 192, height: 192, name: 'logo192.png', type: 'image/png' },
+      { width: 32, height: 32, name: 'favicon.ico', type: 'image/x-icon' }
+    ];
+
+    for (const asset of assets) {
+      await drawImageToCanvas(asset.width, asset.height);
+      const canvas = canvasRef.current;
+      await new Promise((res) => {
+        canvas.toBlob((blob) => {
+          if (!blob) return res();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = asset.name;
+          a.click();
+          URL.revokeObjectURL(url);
+          res();
+        }, asset.type);
+      });
+    }
+
+    await drawImageToCanvas();
+    const canvas = canvasRef.current;
+    const imgd = ImageTracer.getImgdata(canvas);
+    const svgString = ImageTracer.imagedataToSVG(imgd);
+    const blob = new Blob([svgString], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'logo.svg';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="container">
       <h1>Image Converter</h1>
@@ -108,6 +146,7 @@ function App() {
             <button onClick={downloadPNG}>Download PNG</button>
             <button onClick={downloadSVG}>Download SVG</button>
             <button onClick={downloadICO}>Download ICO</button>
+            <button onClick={downloadReactAssets}>Download React Assets</button>
           </div>
         </>
       )}
