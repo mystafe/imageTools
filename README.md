@@ -1,1 +1,23 @@
-# imageTools
+# Image Tools
+
+This repository contains a simple React application for converting images to PNG and SVG formats.
+
+The app lets you:
+
+- Upload an image from your computer
+- Choose a resolution for the output
+- Download the image as PNG or SVG
+
+The React app is located in the `frontend` directory and was created using Vite.
+
+## Running the App
+
+Install dependencies and start the development server:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Then open the displayed local URL in your browser.
