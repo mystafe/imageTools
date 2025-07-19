@@ -60,9 +60,10 @@ function App() {
     }
   };
 
-  const goToSecondImage = () => {
-    if (images.length > 1) {
-      handleImageClick(1);
+  const goToNextImage = () => {
+    if (images.length > 0) {
+      const nextIndex = (currentIndex + 1) % images.length;
+      handleImageClick(nextIndex);
     }
   };
 
@@ -305,7 +306,7 @@ function App() {
               );
             })}
           </div>
-          <button onClick={goToSecondImage} style={{ marginTop: '0.5em' }}>
+          <button onClick={goToNextImage} className="next-btn">
             Next
           </button>
           <div className="buttons">
