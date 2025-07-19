@@ -24,6 +24,23 @@
   gap: 1em;
 }
 
+.svg-code-container {
+  margin-top: 1em;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.svg-code {
+  width: 100%;
+  height: 10rem;
+}
+
+.copy-btn {
+  align-self: flex-end;
+  margin-bottom: 0.5em;
+}
+
 @media (max-width: 600px) {
   .container {
     padding: 1rem;
