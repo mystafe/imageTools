@@ -202,7 +202,7 @@ function App() {
     ];
 
     for (const asset of assets) {
-      await drawImageToCanvas(asset.width, asset.height);
+      await drawImageToCanvas(undefined, asset.width, asset.height);
       const canvas = canvasRef.current;
       await new Promise((res) => {
         canvas.toBlob(async (blob) => {
@@ -247,7 +247,7 @@ function App() {
   return (
     <div className="container">
       <h1>Image Converter</h1>
-      <input type="file" accept="image/*" onChange={handleFileChange} />
+      <input type="file" accept="image/*" multiple onChange={handleFileChange} />
       {images.length > 0 && (
         <>
           <div className="controls">
