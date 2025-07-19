@@ -282,10 +282,7 @@ function App() {
             <button onClick={() => { setWidth('196'); setHeight('196'); }}>196x196</button>
             <button onClick={() => { setWidth('64'); setHeight('64'); }}>64x64</button>
           </div>
-          <div
-            className="preview-stack"
-            style={{ width: `${width}px`, height: `${height}px` }}
-          >
+          <div className="preview-stack">
             {images.map((img, idx) => {
               const offset = (idx - currentIndex + images.length) % images.length;
               return (
@@ -300,14 +297,16 @@ function App() {
                     transform:
                       offset === 0
                         ? 'translateX(0)'
-                        : `translateX(${offset * 20}px) scale(0.9)`,
+                        : offset === 1
+                          ? 'translateX(30px) scale(0.9)'
+                          : `translateX(${offset * 20}px) scale(0.9)`,
                   }}
                 />
               );
             })}
           </div>
           <button onClick={goToSecondImage} style={{ marginTop: '0.5em' }}>
-            2. Resme Geç
+            Next
           </button>
           <div className="buttons">
             <button onClick={downloadPNG}>Download PNG</button>
