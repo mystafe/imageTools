@@ -7,6 +7,7 @@ The app lets you:
 - Upload an image from your computer
 - Choose a resolution for the output
 - Download the image as PNG, SVG or ICO
+- Generate and copy the SVG code to the clipboard
 - Download React asset files as a zip containing logo512.png, logo192.png, favicon.ico and logo.svg
 - Specify the output file name
 

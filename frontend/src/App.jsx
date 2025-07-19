@@ -8,6 +8,8 @@ function App() {
   const [width, setWidth] = useState(300);
   const [height, setHeight] = useState(300);
   const [fileName, setFileName] = useState('image');
+  const [svgCode, setSvgCode] = useState('');
+  const [showSvgCode, setShowSvgCode] = useState(false);
   const canvasRef = useRef(null);
 
   const handleFileChange = (e) => {
@@ -70,6 +72,25 @@ function App() {
     a.download = `${fileName || 'image'}.svg`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const generateSVGCode = async () => {
+    if (!imgSrc) return;
+    await drawImageToCanvas();
+    const canvas = canvasRef.current;
+    const imgd = ImageTracer.getImgdata(canvas);
+    const svgString = ImageTracer.imagedataToSVG(imgd);
+    setSvgCode(svgString);
+    setShowSvgCode(true);
+  };
+
+  const copySVGToClipboard = async () => {
+    if (!svgCode) return;
+    try {
+      await navigator.clipboard.writeText(svgCode);
+    } catch (err) {
+      console.error('Failed to copy', err);
+    }
   };
 
   const downloadICO = async () => {
@@ -148,9 +169,22 @@ function App() {
           <div className="buttons">
             <button onClick={downloadPNG}>Download PNG</button>
             <button onClick={downloadSVG}>Download SVG</button>
+            <button onClick={generateSVGCode}>SVG Kodu Göster</button>
             <button onClick={downloadICO}>Download ICO</button>
             <button onClick={downloadReactAssets}>Download React Assets</button>
           </div>
+          {showSvgCode && (
+            <div className="svg-code-container">
+              <button className="copy-btn" onClick={copySVGToClipboard}>
+                📋 Kopyala
+              </button>
+              <textarea
+                className="svg-code"
+                value={svgCode}
+                readOnly
+              />
+            </div>
+          )}
         </>
       )}
       <canvas ref={canvasRef} style={{ display: 'none' }} />
