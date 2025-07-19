@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import ImageTracer from 'imagetracerjs';
+import JSZip from 'jszip';
 import './App.css';
 
 function App() {
@@ -88,6 +89,8 @@ function App() {
 
   const downloadReactAssets = async () => {
     if (!imgSrc) return;
+
+    const zip = new JSZip();
     const assets = [
       { width: 512, height: 512, name: 'logo512.png', type: 'image/png' },
       { width: 192, height: 192, name: 'logo192.png', type: 'image/png' },
@@ -98,14 +101,10 @@ function App() {
       await drawImageToCanvas(asset.width, asset.height);
       const canvas = canvasRef.current;
       await new Promise((res) => {
-        canvas.toBlob((blob) => {
+        canvas.toBlob(async (blob) => {
           if (!blob) return res();
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = asset.name;
-          a.click();
-          URL.revokeObjectURL(url);
+          const buf = await blob.arrayBuffer();
+          zip.file(asset.name, buf);
           res();
         }, asset.type);
       });
@@ -115,11 +114,13 @@ function App() {
     const canvas = canvasRef.current;
     const imgd = ImageTracer.getImgdata(canvas);
     const svgString = ImageTracer.imagedataToSVG(imgd);
-    const blob = new Blob([svgString], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
+    zip.file('logo.svg', svgString);
+
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(zipBlob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'logo.svg';
+    a.download = 'react-assets.zip';
     a.click();
     URL.revokeObjectURL(url);
   };
