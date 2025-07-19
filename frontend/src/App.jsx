@@ -233,13 +233,20 @@ function App() {
 
   const downloadPDF = async () => {
     if (!images.length) return;
-    const pdf = new jsPDF();
-    images.forEach((img, idx) => {
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = (img.height / img.width) * pageWidth;
+    const temp = new jsPDF();
+    const pageWidth = temp.internal.pageSize.getWidth();
+    const totalHeight = images.reduce(
+      (sum, img) => sum + (img.height / img.width) * pageWidth,
+      0,
+    );
+
+    const pdf = new jsPDF({ unit: 'mm', format: [pageWidth, totalHeight] });
+    let y = 0;
+    images.forEach((img) => {
+      const imgHeight = (img.height / img.width) * pageWidth;
       const fmt = img.src.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
-      pdf.addImage(img.src, fmt, 0, 0, pageWidth, pageHeight);
-      if (idx < images.length - 1) pdf.addPage();
+      pdf.addImage(img.src, fmt, 0, y, pageWidth, imgHeight);
+      y += imgHeight;
     });
     pdf.save(`${fileName || 'images'}.pdf`);
   };
