@@ -35,7 +35,7 @@
   width: 300px;
   height: 300px;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 12px;
 }
 
