@@ -1,12 +1,13 @@
 # Image Tools
 
-This repository contains a simple React application for converting images to PNG and SVG formats.
+This repository contains a simple React application for converting images to PNG, SVG and ICO formats.
 
 The app lets you:
 
 - Upload an image from your computer
 - Choose a resolution for the output
-- Download the image as PNG or SVG
+- Download the image as PNG, SVG or ICO
+- Specify the output file name
 
 The React app is located in the `frontend` directory and was created using Vite.
 

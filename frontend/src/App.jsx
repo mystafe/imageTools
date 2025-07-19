@@ -6,6 +6,7 @@ function App() {
   const [imgSrc, setImgSrc] = useState(null);
   const [width, setWidth] = useState(300);
   const [height, setHeight] = useState(300);
+  const [fileName, setFileName] = useState('image');
   const canvasRef = useRef(null);
 
   const handleFileChange = (e) => {
@@ -45,10 +46,11 @@ function App() {
     await drawImageToCanvas();
     const canvas = canvasRef.current;
     canvas.toBlob((blob) => {
+      if (!blob) return;
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'image.png';
+      a.download = `${fileName || 'image'}.png`;
       a.click();
       URL.revokeObjectURL(url);
     }, 'image/png');
@@ -64,9 +66,24 @@ function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'image.svg';
+    a.download = `${fileName || 'image'}.svg`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const downloadICO = async () => {
+    if (!imgSrc) return;
+    await drawImageToCanvas();
+    const canvas = canvasRef.current;
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${fileName || 'image'}.ico`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }, 'image/x-icon');
   };
 
   return (
@@ -82,11 +99,15 @@ function App() {
             <label>
               Height: <input type="number" value={height} onChange={(e) => setHeight(parseInt(e.target.value) || 0)} />
             </label>
+            <label>
+              File name: <input type="text" value={fileName} onChange={(e) => setFileName(e.target.value)} />
+            </label>
           </div>
           <img src={imgSrc} alt="preview" className="preview" />
           <div className="buttons">
             <button onClick={downloadPNG}>Download PNG</button>
             <button onClick={downloadSVG}>Download SVG</button>
+            <button onClick={downloadICO}>Download ICO</button>
           </div>
         </>
       )}
