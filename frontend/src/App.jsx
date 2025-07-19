@@ -1,10 +1,12 @@
 import { useState, useRef } from 'react';
 import ImageTracer from 'imagetracerjs';
 import JSZip from 'jszip';
+import { jsPDF } from 'jspdf';
 import './App.css';
 
 function App() {
-  const [imgSrc, setImgSrc] = useState(null);
+  const [images, setImages] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [width, setWidth] = useState('300');
   const [height, setHeight] = useState('300');
   const [keepRatio, setKeepRatio] = useState(true);
@@ -15,20 +17,47 @@ function App() {
   const canvasRef = useRef(null);
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        setWidth(String(img.width));
-        setHeight(String(img.height));
-        setRatio(img.width / img.height);
-        setImgSrc(reader.result);
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    Promise.all(
+      files.map(
+        (file) =>
+          new Promise((res) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const img = new Image();
+              img.onload = () => {
+                res({
+                  src: reader.result,
+                  width: img.width,
+                  height: img.height,
+                  ratio: img.width / img.height,
+                });
+              };
+              img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+          }),
+      ),
+    ).then((imgs) => {
+      setImages(imgs);
+      setCurrentIndex(0);
+      const first = imgs[0];
+      setWidth(String(first.width));
+      setHeight(String(first.height));
+      setRatio(first.ratio);
+    });
+  };
+
+  const handleImageClick = (index) => {
+    setCurrentIndex(index);
+    const img = images[index];
+    if (img) {
+      setWidth(String(img.width));
+      setHeight(String(img.height));
+      setRatio(img.ratio);
+    }
   };
 
   const handleWidthChange = (e) => {
@@ -65,7 +94,7 @@ function App() {
     setHeight(value);
   };
 
-  const drawImageToCanvas = (w = width, h = height) => {
+  const drawImageToCanvas = (src = images[currentIndex]?.src, w = width, h = height) => {
     const wNum = parseInt(w);
     const hNum = parseInt(h);
     return new Promise((resolve) => {
@@ -79,12 +108,12 @@ function App() {
         ctx.drawImage(img, 0, 0, wNum, hNum);
         resolve();
       };
-      img.src = imgSrc;
+      img.src = src;
     });
   };
 
   const downloadPNG = async () => {
-    if (!imgSrc) return;
+    if (!images.length) return;
     await drawImageToCanvas();
     const canvas = canvasRef.current;
     canvas.toBlob((blob) => {
@@ -98,8 +127,23 @@ function App() {
     }, 'image/png');
   };
 
+  const downloadJPG = async () => {
+    if (!images.length) return;
+    await drawImageToCanvas();
+    const canvas = canvasRef.current;
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${fileName || 'image'}.jpg`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }, 'image/jpeg');
+  };
+
   const downloadSVG = async () => {
-    if (!imgSrc) return;
+    if (!images.length) return;
     await drawImageToCanvas();
     const canvas = canvasRef.current;
     const imgd = ImageTracer.getImgdata(canvas);
@@ -114,7 +158,7 @@ function App() {
   };
 
   const generateSVGCode = async () => {
-    if (!imgSrc) return;
+    if (!images.length) return;
     await drawImageToCanvas();
     const canvas = canvasRef.current;
     const imgd = ImageTracer.getImgdata(canvas);
@@ -133,7 +177,7 @@ function App() {
   };
 
   const downloadICO = async () => {
-    if (!imgSrc) return;
+    if (!images.length) return;
     await drawImageToCanvas();
     const canvas = canvasRef.current;
     canvas.toBlob((blob) => {
@@ -148,7 +192,7 @@ function App() {
   };
 
   const downloadReactAssets = async () => {
-    if (!imgSrc) return;
+    if (!images.length) return;
 
     const zip = new JSZip();
     const assets = [
@@ -187,11 +231,24 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
+  const downloadPDF = async () => {
+    if (!images.length) return;
+    const pdf = new jsPDF();
+    images.forEach((img, idx) => {
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = (img.height / img.width) * pageWidth;
+      const fmt = img.src.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
+      pdf.addImage(img.src, fmt, 0, 0, pageWidth, pageHeight);
+      if (idx < images.length - 1) pdf.addPage();
+    });
+    pdf.save(`${fileName || 'images'}.pdf`);
+  };
+
   return (
     <div className="container">
       <h1>Image Converter</h1>
       <input type="file" accept="image/*" onChange={handleFileChange} />
-      {imgSrc && (
+      {images.length > 0 && (
         <>
           <div className="controls">
             <label>
@@ -212,13 +269,38 @@ function App() {
             <button onClick={() => { setWidth('196'); setHeight('196'); }}>196x196</button>
             <button onClick={() => { setWidth('64'); setHeight('64'); }}>64x64</button>
           </div>
-          <img src={imgSrc} alt="preview" className="preview fade-in" />
+          <div
+            className="preview-stack"
+            style={{ height: `${height}px`, position: 'relative' }}
+          >
+            {images.map((img, idx) => {
+              const offset = (idx - currentIndex + images.length) % images.length;
+              return (
+                <img
+                  key={idx}
+                  src={img.src}
+                  alt={`preview-${idx}`}
+                  className={`preview-img fade-in${offset === 0 ? ' active' : ''}`}
+                  onClick={() => handleImageClick(idx)}
+                  style={{
+                    zIndex: images.length - offset,
+                    transform:
+                      offset === 0
+                        ? 'translateX(0)'
+                        : `translateX(${offset * 20}px) scale(0.9)`,
+                  }}
+                />
+              );
+            })}
+          </div>
           <div className="buttons">
             <button onClick={downloadPNG}>Download PNG</button>
+            <button onClick={downloadJPG}>Download JPG</button>
             <button onClick={downloadSVG}>Download SVG</button>
             <button onClick={generateSVGCode}>SVG Kodu Göster</button>
             <button onClick={downloadICO}>Download ICO</button>
             <button onClick={downloadReactAssets}>Download React Assets</button>
+            <button onClick={downloadPDF}>Download PDF</button>
           </div>
           {showSvgCode && (
             <div className="svg-code-container fade-in">
