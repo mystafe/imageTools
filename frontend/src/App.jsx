@@ -165,7 +165,7 @@ function App() {
               File name: <input type="text" value={fileName} onChange={(e) => setFileName(e.target.value)} />
             </label>
           </div>
-          <img src={imgSrc} alt="preview" className="preview" />
+          <img src={imgSrc} alt="preview" className="preview fade-in" />
           <div className="buttons">
             <button onClick={downloadPNG}>Download PNG</button>
             <button onClick={downloadSVG}>Download SVG</button>
@@ -174,7 +174,7 @@ function App() {
             <button onClick={downloadReactAssets}>Download React Assets</button>
           </div>
           {showSvgCode && (
-            <div className="svg-code-container">
+            <div className="svg-code-container fade-in">
               <button className="copy-btn" onClick={copySVGToClipboard}>
                 📋 Kopyala
               </button>
