@@ -282,7 +282,10 @@ function App() {
             <button onClick={() => { setWidth('196'); setHeight('196'); }}>196x196</button>
             <button onClick={() => { setWidth('64'); setHeight('64'); }}>64x64</button>
           </div>
-          <div className="preview-stack">
+          <div
+            className="preview-stack"
+            style={{ width: `${width}px`, height: `${height}px` }}
+          >
             {images.map((img, idx) => {
               const offset = (idx - currentIndex + images.length) % images.length;
               return (

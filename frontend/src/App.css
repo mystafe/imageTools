@@ -33,11 +33,12 @@
   display: inline-block;
   max-width: 100%;
   overflow: hidden;
+  border-radius: 12px;
 }
 
 .preview-img {
   width: 100%;
-  height: auto;
+  height: 100%;
   position: absolute;
   top: 0;
   left: 0;
