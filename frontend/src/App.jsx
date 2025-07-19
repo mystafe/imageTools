@@ -278,7 +278,11 @@ function App() {
           </div>
           <div
             className="preview-stack"
-            style={{ height: `${height}px`, position: 'relative' }}
+            style={{
+              height: `${height}px`,
+              width: `${width}px`,
+              position: 'relative',
+            }}
           >
             {images.map((img, idx) => {
               const offset = (idx - currentIndex + images.length) % images.length;
