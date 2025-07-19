@@ -27,16 +27,30 @@
   font-size: 0.9em;
 }
 
-.preview {
-  max-width: 100%;
+.preview-stack {
   margin-top: 1em;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: transform 0.3s;
+  position: relative;
+  display: inline-block;
 }
 
-.preview:hover {
-  transform: scale(1.02);
+.preview-img {
+  max-width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: transform 0.3s, z-index 0.3s;
+}
+
+.preview-img:not(.active) {
+  transform: scale(0.9);
+  opacity: 0.8;
+}
+
+.preview-img.active {
+  transform: translateX(0) scale(1);
 }
 
 .buttons {

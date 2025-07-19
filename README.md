@@ -4,11 +4,12 @@ This repository contains a simple React application for converting images to PNG
 
 The app lets you:
 
-- Upload an image from your computer
+- Upload one or more images from your computer
 - Choose a resolution for the output
-- Download the image as PNG, SVG or ICO
+- Download the current image as PNG, JPG, SVG or ICO
 - Generate and copy the SVG code to the clipboard
 - Download React asset files as a zip containing logo512.png, logo192.png, favicon.ico and logo.svg
+- Combine all uploaded images into a single PDF file
 - Specify the output file name
 
 The React app is located in the `frontend` directory and was created using Vite.
