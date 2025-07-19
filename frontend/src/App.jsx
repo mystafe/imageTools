@@ -60,6 +60,12 @@ function App() {
     }
   };
 
+  const goToSecondImage = () => {
+    if (images.length > 1) {
+      handleImageClick(1);
+    }
+  };
+
   const handleWidthChange = (e) => {
     const value = e.target.value;
     if (keepRatio && value !== '') {
@@ -276,14 +282,7 @@ function App() {
             <button onClick={() => { setWidth('196'); setHeight('196'); }}>196x196</button>
             <button onClick={() => { setWidth('64'); setHeight('64'); }}>64x64</button>
           </div>
-          <div
-            className="preview-stack"
-            style={{
-              height: `${height}px`,
-              width: `${width}px`,
-              position: 'relative',
-            }}
-          >
+          <div className="preview-stack">
             {images.map((img, idx) => {
               const offset = (idx - currentIndex + images.length) % images.length;
               return (
@@ -304,6 +303,9 @@ function App() {
               );
             })}
           </div>
+          <button onClick={goToSecondImage} style={{ marginTop: '0.5em' }}>
+            2. Resme Geç
+          </button>
           <div className="buttons">
             <button onClick={downloadPNG}>Download PNG</button>
             <button onClick={downloadJPG}>Download JPG</button>
