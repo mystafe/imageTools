@@ -23,3 +23,29 @@
   justify-content: center;
   gap: 1em;
 }
+
+@media (max-width: 600px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .controls label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .controls input {
+    width: 100%;
+  }
+
+  .buttons {
+    flex-direction: column;
+    gap: 0.5em;
+  }
+}
