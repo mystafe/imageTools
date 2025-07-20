@@ -23,10 +23,52 @@ function App() {
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
 
-  // Keep the original orientation of the image without any transformation
-  const fixOrientation = (img) => {
-    return { src: img.src, width: img.width, height: img.height };
-  };
+  // Fix the orientation using the EXIF orientation tag and return
+  // a data URL along with the corrected dimensions.
+  const fixOrientation = (img, orientation) =>
+    new Promise((resolve) => {
+      if (!orientation || orientation === 1) {
+        return resolve({ src: img.src, width: img.width, height: img.height });
+      }
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (orientation > 4) {
+        canvas.width = img.height;
+        canvas.height = img.width;
+      } else {
+        canvas.width = img.width;
+        canvas.height = img.height;
+      }
+      const w = canvas.width;
+      const h = canvas.height;
+      switch (orientation) {
+        case 2:
+          ctx.transform(-1, 0, 0, 1, w, 0);
+          break;
+        case 3:
+          ctx.transform(-1, 0, 0, -1, w, h);
+          break;
+        case 4:
+          ctx.transform(1, 0, 0, -1, 0, h);
+          break;
+        case 5:
+          ctx.transform(0, 1, 1, 0, 0, 0);
+          break;
+        case 6:
+          ctx.transform(0, 1, -1, 0, h, 0);
+          break;
+        case 7:
+          ctx.transform(0, -1, -1, 0, h, w);
+          break;
+        case 8:
+          ctx.transform(0, -1, 1, 0, 0, w);
+          break;
+        default:
+          break;
+      }
+      ctx.drawImage(img, 0, 0);
+      resolve({ src: canvas.toDataURL(), width: w, height: h });
+    });
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
@@ -60,18 +102,19 @@ function App() {
               const orientation = EXIF.getTag(this, 'Orientation') || 1;
               const make = EXIF.getTag(this, 'Make') || '';
               const model = EXIF.getTag(this, 'Model') || '';
-              const fixed = fixOrientation(img);
-              res({
-                src: fixed.src,
-                width: fixed.width,
-                height: fixed.height,
-                ratio: fixed.width / fixed.height,
-                orientation,
-                name: f.name,
-                type: f.type,
-                size: f.size,
-                lastModified: f.lastModified,
-                device: `${make} ${model}`.trim() || 'Unknown',
+              fixOrientation(img, orientation).then((fixed) => {
+                res({
+                  src: fixed.src,
+                  width: fixed.width,
+                  height: fixed.height,
+                  ratio: fixed.width / fixed.height,
+                  orientation: 1,
+                  name: f.name,
+                  type: f.type,
+                  size: f.size,
+                  lastModified: f.lastModified,
+                  device: `${make} ${model}`.trim() || 'Unknown',
+                });
               });
             });
           };
