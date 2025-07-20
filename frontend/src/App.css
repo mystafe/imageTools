@@ -242,6 +242,7 @@
   position: fixed;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.6);
@@ -255,6 +256,13 @@
   border-top-color: #646cff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  margin-top: 0.5em;
+  font-size: 0.9em;
+  color: #fff;
+  opacity: 0.8;
 }
 
 @keyframes spin {
@@ -333,4 +341,10 @@
     flex-direction: column;
     gap: 0.5em;
   }
+}
+
+.credits {
+  margin-top: 2rem;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
 }

@@ -404,7 +404,7 @@ function App() {
   const downloadPDF = async () => {
     if (!images.length) return;
     setLoading(true);
-    const temp = new jsPDF();
+    const temp = new jsPDF({ orientation: 'portrait' });
     const pageWidth = temp.internal.pageSize.getWidth();
     const margin = 5;
     const imgWidth = pageWidth - margin * 2;
@@ -421,7 +421,7 @@ function App() {
       return sum + (height / width) * imgWidth + margin;
     }, margin);
 
-    const pdf = new jsPDF({ unit: 'mm', format: [pageWidth, totalHeight] });
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pageWidth, totalHeight] });
     let y = margin;
     try {
       for (const img of images) {
@@ -550,6 +550,7 @@ function App() {
       {loading && (
         <div className="loading-overlay fade-in">
           <div className="spinner" />
+          <div className="loading-text">Processing...</div>
         </div>
       )}
       {message && (
@@ -558,6 +559,7 @@ function App() {
           <button className="reset-btn" onClick={() => window.location.reload()}>Baştan Başla</button>
         </div>
       )}
+      <p className="credits">developed by Mustafa Evleksiz</p>
     </div>
   );
 }
