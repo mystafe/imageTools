@@ -112,6 +112,12 @@ function App() {
     }
   };
 
+  const applyPreset = (w, h) => {
+    setWidth(String(w));
+    setHeight(String(h));
+    setKeepRatio(false);
+  };
+
   const handlePreviewClick = (index) => {
     if (index === currentIndex) {
       goToNextImage();
@@ -462,10 +468,10 @@ function App() {
             </label>
           </div>
           <div className="presets">
-            <button onClick={() => { setWidth('1024'); setHeight('768'); }}>1024x768</button>
-            <button onClick={() => { setWidth('512'); setHeight('512'); }}>512x512</button>
-            <button onClick={() => { setWidth('196'); setHeight('196'); }}>196x196</button>
-            <button onClick={() => { setWidth('64'); setHeight('64'); }}>64x64</button>
+            <button onClick={() => applyPreset(1024, 768)}>1024x768</button>
+            <button onClick={() => applyPreset(512, 512)}>512x512</button>
+            <button onClick={() => applyPreset(196, 196)}>196x196</button>
+            <button onClick={() => applyPreset(64, 64)}>64x64</button>
           </div>
           <div className="preview-stack">
             {images.map((img, idx) => {
@@ -498,7 +504,7 @@ function App() {
                         goToNextImage();
                       }}
                     >
-                      <div className="next-icon">&raquo;&raquo;</div>
+                      <div className="next-icon">&gt;&gt;&gt;</div>
                     </div>
                   )}
                   <div className="preview-info">
