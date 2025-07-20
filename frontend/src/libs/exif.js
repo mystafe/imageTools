@@ -5,7 +5,9 @@
     // Predeclare variable used for loops to avoid strict mode errors
     var n;
 
-    var root = this;
+    // In ESM/strict mode `this` is undefined. Fall back to globalThis so
+    // `root.EXIF` can be assigned without errors when bundled by modern tools.
+    var root = typeof globalThis !== 'undefined' ? globalThis : this;
 
     var EXIF = function(obj) {
         if (obj instanceof EXIF) return obj;
