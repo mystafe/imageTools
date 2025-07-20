@@ -418,7 +418,7 @@ function App() {
               return (
                 <div
                   key={idx}
-                  className="preview-wrapper"
+                  className={`preview-wrapper${offset === 0 ? ' active' : ''}`}
                   onClick={() => handleImageClick(idx)}
                   style={{
                     zIndex: images.length - offset,
@@ -435,6 +435,18 @@ function App() {
                     alt={`preview-${idx}`}
                     className={`preview-img fade-in${offset === 0 ? ' active' : ''}`}
                   />
+                  {offset === 0 && images.length > 1 && (
+                    <div
+                      className="next-overlay"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        goToNextImage();
+                      }}
+                    >
+                      <div className="next-icon">➡️</div>
+                      <div className="next-text">Next</div>
+                    </div>
+                  )}
                   <div className="preview-info">
                     {img.width}x{img.height} |
                     {(img.size / 1024).toFixed(1)}KB
@@ -445,11 +457,6 @@ function App() {
               );
             })}
           </div>
-          {images.length > 1 && (
-            <button onClick={goToNextImage} className="next-btn">
-              Next
-            </button>
-          )}
           <div className="buttons">
             <button onClick={downloadPNG}>Download PNG</button>
             <button onClick={downloadJPG}>Download JPG</button>
