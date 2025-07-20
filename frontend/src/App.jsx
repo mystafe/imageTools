@@ -2,7 +2,6 @@ import { useState, useRef } from 'react';
 import EXIF from './libs/exif.js';
 import pkg from '../package.json';
 import ImageTracer from 'imagetracerjs';
-import logo from './logo.svg';
 import JSZip from 'jszip';
 import { jsPDF } from 'jspdf';
 import './App.css';
@@ -93,11 +92,9 @@ function App() {
                   lastModified: file.lastModified,
                   device: `${make} ${model}`.trim() || 'Unknown',
                 });
-                URL.revokeObjectURL(url);
               });
             };
             img.onerror = () => {
-              URL.revokeObjectURL(url);
               res(null);
             };
             img.src = url;
@@ -394,7 +391,6 @@ function App() {
 
   return (
     <div className="container">
-      <img src={logo} alt="logo" className="logo" />
       <h1 className="title">
         Image Converter
         <span className="version">v{pkg.version}</span>
