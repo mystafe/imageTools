@@ -8,6 +8,7 @@ import { heicTo } from 'heic-to';
 import './App.css';
 
 function App() {
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
   const [images, setImages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [width, setWidth] = useState('300');
@@ -430,7 +431,7 @@ function App() {
         const { width, height } = getOrientedDimensions(img);
         const imgHeight = (height / width) * imgWidth;
         const fmt = img.src.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
-        const src = await orientImageSrc(img.src, img.orientation);
+        const src = isMobile ? img.src : await orientImageSrc(img.src, img.orientation);
         pdf.addImage(src, fmt, margin, y, imgWidth, imgHeight);
         y += imgHeight + margin;
       }
