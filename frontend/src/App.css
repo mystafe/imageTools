@@ -12,6 +12,8 @@
 .title {
   position: relative;
   display: inline-block;
+  font-size: 2.8em;
+  margin-bottom: 0.4em;
 }
 
 .title .version {
@@ -37,6 +39,10 @@
 .size-controls {
   display: flex;
   gap: 1em;
+}
+
+.size-controls input[type="number"] {
+  max-width: 6rem;
 }
 
 .keep-ratio {
@@ -134,7 +140,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
+  background: linear-gradient(90deg, #646cff, #de52ff);
+  background-size: 200% 100%;
   color: #fff;
   border-radius: 12px;
   opacity: 0;
@@ -151,13 +158,20 @@
 .next-icon {
   font-size: 2.5rem;
   line-height: 1;
-  animation: bounce 1s infinite;
+  animation: slide-bg 3s linear infinite;
+  background: inherit;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-.next-text {
-  font-size: 1rem;
-  margin-top: 0.2em;
-  font-weight: 600;
+@keyframes slide-bg {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
 }
 
 
@@ -204,6 +218,7 @@
   gap: 1em;
   align-items: center;
   justify-content: center;
+  animation: pop 0.6s ease-in-out;
 }
 
 .reset-btn {
@@ -222,6 +237,20 @@
   }
   to {
     opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
     transform: scale(1);
   }
 }
@@ -252,6 +281,10 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .keep-ratio {
+    flex-direction: row;
   }
 
   .size-controls {
