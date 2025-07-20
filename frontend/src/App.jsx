@@ -14,6 +14,8 @@ function App() {
   const [fileName, setFileName] = useState('image');
   const [svgCode, setSvgCode] = useState('');
   const [showSvgCode, setShowSvgCode] = useState(false);
+  const [message, setMessage] = useState('');
+  const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
 
   const handleFileChange = (e) => {
@@ -140,6 +142,7 @@ function App() {
         }, 'image/png');
       });
     }
+    setMessage('PNG download complete!');
   };
 
   const downloadJPG = async () => {
@@ -163,6 +166,7 @@ function App() {
         }, 'image/jpeg');
       });
     }
+    setMessage('JPG download complete!');
   };
 
   const downloadSVG = async () => {
@@ -183,6 +187,7 @@ function App() {
       a.click();
       URL.revokeObjectURL(url);
     }
+    setMessage('SVG download complete!');
   };
 
   const generateSVGCode = async () => {
@@ -193,12 +198,14 @@ function App() {
     const svgString = ImageTracer.imagedataToSVG(imgd);
     setSvgCode(svgString);
     setShowSvgCode(true);
+    setMessage('SVG code generated!');
   };
 
   const copySVGToClipboard = async () => {
     if (!svgCode) return;
     try {
       await navigator.clipboard.writeText(svgCode);
+      setMessage('SVG copied to clipboard!');
     } catch (err) {
       console.error('Failed to copy', err);
     }
@@ -225,6 +232,7 @@ function App() {
         }, 'image/x-icon');
       });
     }
+    setMessage('ICO download complete!');
   };
 
   const downloadReactAssets = async () => {
@@ -270,26 +278,30 @@ function App() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    setMessage('React assets downloaded!');
   };
 
   const downloadPDF = async () => {
     if (!images.length) return;
     const temp = new jsPDF();
     const pageWidth = temp.internal.pageSize.getWidth();
+    const margin = 5;
+    const imgWidth = pageWidth - margin * 2;
     const totalHeight = images.reduce(
-      (sum, img) => sum + (img.height / img.width) * pageWidth,
-      0,
+      (sum, img) => sum + (img.height / img.width) * imgWidth + margin,
+      margin,
     );
 
     const pdf = new jsPDF({ unit: 'mm', format: [pageWidth, totalHeight] });
-    let y = 0;
+    let y = margin;
     images.forEach((img) => {
-      const imgHeight = (img.height / img.width) * pageWidth;
+      const imgHeight = (img.height / img.width) * imgWidth;
       const fmt = img.src.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
-      pdf.addImage(img.src, fmt, 0, y, pageWidth, imgHeight);
-      y += imgHeight;
+      pdf.addImage(img.src, fmt, margin, y, imgWidth, imgHeight);
+      y += imgHeight + margin;
     });
     pdf.save(`${fileName || 'images'}.pdf`);
+    setMessage('PDF created successfully!');
   };
 
   return (
@@ -298,7 +310,16 @@ function App() {
         Image Converter
         <span className="version">v1.0</span>
       </h1>
-      <input type="file" accept="image/*" multiple onChange={handleFileChange} />
+      <input
+        id="file-input"
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleFileChange}
+        style={{ display: 'none' }}
+      />
+      <label htmlFor="file-input" className="file-label">Choose Files</label>
       {images.length > 0 && (
         <>
           <div className="controls">
@@ -360,7 +381,7 @@ function App() {
           {showSvgCode && (
             <div className="svg-code-container fade-in">
               <button className="copy-btn" onClick={copySVGToClipboard}>
-                📋 Kopyala
+                📋 Copy
               </button>
               <textarea
                 className="svg-code"
@@ -372,6 +393,12 @@ function App() {
         </>
       )}
       <canvas ref={canvasRef} style={{ display: 'none' }} />
+      {message && (
+        <div className="message fade-in">
+          {message}
+          <button className="reset-btn" onClick={() => window.location.reload()}>Baştan Başla</button>
+        </div>
+      )}
     </div>
   );
 }
