@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import EXIF from './libs/exif.js';
 import pkg from '../package.json';
 import ImageTracer from 'imagetracerjs';
+import logo from './logo.svg';
 import JSZip from 'jszip';
 import { jsPDF } from 'jspdf';
 import './App.css';
@@ -157,10 +158,17 @@ function App() {
   const handleKeepRatioChange = (e) => {
     const checked = e.target.checked;
     if (checked) {
-      const w = parseInt(width);
-      const h = parseInt(height);
-      if (!isNaN(w) && !isNaN(h) && h !== 0) {
-        setRatio(w / h);
+      const img = images[currentIndex];
+      if (img) {
+        setWidth(String(img.width));
+        setHeight(String(img.height));
+        setRatio(img.ratio);
+      } else {
+        const w = parseInt(width);
+        const h = parseInt(height);
+        if (!isNaN(w) && !isNaN(h) && h !== 0) {
+          setRatio(w / h);
+        }
       }
     }
     setKeepRatio(checked);
@@ -386,6 +394,7 @@ function App() {
 
   return (
     <div className="container">
+      <img src={logo} alt="logo" className="logo" />
       <h1 className="title">
         Image Converter
         <span className="version">v{pkg.version}</span>

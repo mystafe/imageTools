@@ -9,6 +9,14 @@
   backdrop-filter: blur(8px);
 }
 
+.logo {
+  display: block;
+  width: 100px;
+  margin: 0 auto 0.5em;
+  pointer-events: none;
+  animation: bounce 3s infinite;
+}
+
 .title {
   position: relative;
   display: inline-block;
