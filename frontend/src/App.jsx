@@ -360,6 +360,15 @@ function App() {
       if (!orientation || orientation === 1) return resolve(src);
       const img = new Image();
       img.onload = () => {
+        // Mobile browsers often already apply orientation metadata. If we detect
+        // a rotated orientation but the loaded dimensions indicate the image is
+        // upright, skip the extra rotation to avoid double turning.
+        const alreadyCorrect =
+          /Mobi|Android/i.test(navigator.userAgent) &&
+          orientation > 4 &&
+          img.width < img.height;
+        if (alreadyCorrect) return resolve(src);
+
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         if (orientation > 4) {
