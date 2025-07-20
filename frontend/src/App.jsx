@@ -38,33 +38,25 @@ function App() {
     const h = canvas.height;
     switch (orientation) {
       case 2:
-        ctx.translate(w, 0);
-        ctx.scale(-1, 1);
+        ctx.transform(-1, 0, 0, 1, w, 0);
         break;
       case 3:
-        ctx.translate(w, h);
-        ctx.rotate(Math.PI);
+        ctx.transform(-1, 0, 0, -1, w, h);
         break;
       case 4:
-        ctx.translate(0, h);
-        ctx.scale(1, -1);
+        ctx.transform(1, 0, 0, -1, 0, h);
         break;
       case 5:
-        ctx.rotate(0.5 * Math.PI);
-        ctx.scale(1, -1);
+        ctx.transform(0, 1, 1, 0, 0, 0);
         break;
       case 6:
-        ctx.rotate(0.5 * Math.PI);
-        ctx.translate(0, -h);
+        ctx.transform(0, 1, -1, 0, h, 0);
         break;
       case 7:
-        ctx.rotate(0.5 * Math.PI);
-        ctx.translate(w, -h);
-        ctx.scale(-1, 1);
+        ctx.transform(0, -1, -1, 0, h, w);
         break;
       case 8:
-        ctx.rotate(-0.5 * Math.PI);
-        ctx.translate(-w, 0);
+        ctx.transform(0, -1, 1, 0, 0, w);
         break;
       default:
         break;
@@ -418,7 +410,8 @@ function App() {
             <button onClick={() => { setWidth('512'); setHeight('512'); }}>512x512</button>
             <button onClick={() => { setWidth('196'); setHeight('196'); }}>196x196</button>
             <button onClick={() => { setWidth('64'); setHeight('64'); }}>64x64</button>
-          </div>
+            <button onClick={() => { setWidth('1024'); setHeight('768'); }}>1024x768</button>
+         </div>
           <div className="preview-stack">
             {images.map((img, idx) => {
               const offset = (idx - currentIndex + images.length) % images.length;
