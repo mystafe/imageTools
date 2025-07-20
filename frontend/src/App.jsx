@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import EXIF from 'exif-js';
+import pkg from '../package.json';
 import ImageTracer from 'imagetracerjs';
 import JSZip from 'jszip';
 import { jsPDF } from 'jspdf';
@@ -20,6 +21,39 @@ function App() {
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
 
+  const fixOrientation = (img, orientation) => {
+    if (orientation === 1) {
+      return { src: img.src, width: img.width, height: img.height };
+    }
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (orientation === 6 || orientation === 8) {
+      canvas.width = img.height;
+      canvas.height = img.width;
+    } else {
+      canvas.width = img.width;
+      canvas.height = img.height;
+    }
+    switch (orientation) {
+      case 3:
+        ctx.translate(canvas.width, canvas.height);
+        ctx.rotate(Math.PI);
+        break;
+      case 6:
+        ctx.translate(canvas.width, 0);
+        ctx.rotate(Math.PI / 2);
+        break;
+      case 8:
+        ctx.translate(0, canvas.height);
+        ctx.rotate(-Math.PI / 2);
+        break;
+      default:
+        break;
+    }
+    ctx.drawImage(img, 0, 0);
+    return { src: canvas.toDataURL(), width: canvas.width, height: canvas.height };
+  };
+
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -33,13 +67,15 @@ function App() {
               const img = new Image();
               img.onload = () => {
                 EXIF.getData(file, function () {
+                  const orientation = EXIF.getTag(this, 'Orientation') || 1;
                   const make = EXIF.getTag(this, 'Make') || '';
                   const model = EXIF.getTag(this, 'Model') || '';
+                  const fixed = fixOrientation(img, orientation);
                   res({
-                    src: reader.result,
-                    width: img.width,
-                    height: img.height,
-                    ratio: img.width / img.height,
+                    src: fixed.src,
+                    width: fixed.width,
+                    height: fixed.height,
+                    ratio: fixed.width / fixed.height,
                     name: file.name,
                     type: file.type,
                     size: file.size,
@@ -327,7 +363,7 @@ function App() {
     <div className="container">
       <h1 className="title">
         Image Converter
-        <span className="version">v1.0</span>
+        <span className="version">v{pkg.version}</span>
       </h1>
       <input
         id="file-input"
