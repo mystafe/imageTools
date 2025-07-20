@@ -27,31 +27,50 @@ function App() {
     }
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    if (orientation === 6 || orientation === 8) {
+    if (orientation > 4) {
       canvas.width = img.height;
       canvas.height = img.width;
     } else {
       canvas.width = img.width;
       canvas.height = img.height;
     }
+    const w = canvas.width;
+    const h = canvas.height;
     switch (orientation) {
+      case 2:
+        ctx.translate(w, 0);
+        ctx.scale(-1, 1);
+        break;
       case 3:
-        ctx.translate(canvas.width, canvas.height);
+        ctx.translate(w, h);
         ctx.rotate(Math.PI);
         break;
+      case 4:
+        ctx.translate(0, h);
+        ctx.scale(1, -1);
+        break;
+      case 5:
+        ctx.rotate(0.5 * Math.PI);
+        ctx.scale(1, -1);
+        break;
       case 6:
-        ctx.translate(canvas.width, 0);
-        ctx.rotate(Math.PI / 2);
+        ctx.rotate(0.5 * Math.PI);
+        ctx.translate(0, -h);
+        break;
+      case 7:
+        ctx.rotate(0.5 * Math.PI);
+        ctx.translate(w, -h);
+        ctx.scale(-1, 1);
         break;
       case 8:
-        ctx.translate(0, canvas.height);
-        ctx.rotate(-Math.PI / 2);
+        ctx.rotate(-0.5 * Math.PI);
+        ctx.translate(-w, 0);
         break;
       default:
         break;
     }
     ctx.drawImage(img, 0, 0);
-    return { src: canvas.toDataURL(), width: canvas.width, height: canvas.height };
+    return { src: canvas.toDataURL(), width: w, height: h };
   };
 
   const handleFileChange = (e) => {
