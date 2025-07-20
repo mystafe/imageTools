@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import EXIF from 'exif-js';
+import EXIF from './libs/exif.js';
 import pkg from '../package.json';
 import ImageTracer from 'imagetracerjs';
 import JSZip from 'jszip';
