@@ -66,7 +66,7 @@ function App() {
             reader.onload = () => {
               const img = new Image();
               img.onload = () => {
-                EXIF.getData(file, function () {
+                EXIF.getData(img, function () {
                   const orientation = EXIF.getTag(this, 'Orientation') || 1;
                   const make = EXIF.getTag(this, 'Make') || '';
                   const model = EXIF.getTag(this, 'Model') || '';
@@ -84,15 +84,19 @@ function App() {
                   });
                 });
               };
+              img.onerror = () => res(null);
               img.src = reader.result;
             };
+            reader.onerror = () => res(null);
             reader.readAsDataURL(file);
           }),
       ),
     ).then((imgs) => {
-      setImages(imgs);
+      const loaded = imgs.filter(Boolean);
+      if (!loaded.length) return;
+      setImages(loaded);
       setCurrentIndex(0);
-      const first = imgs[0];
+      const first = loaded[0];
       setWidth(String(first.width));
       setHeight(String(first.height));
       setRatio(first.ratio);
