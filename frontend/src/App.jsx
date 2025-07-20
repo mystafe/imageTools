@@ -355,18 +355,12 @@ function App() {
     setMessage('React assets downloaded!');
   };
 
-//<<<<<<< ryop6i-codex/fix-pdf-generation-direction-on-mobile
-//  const orientImageSrc = (src, orientation, width, height) =>
-//    new Promise((resolve) => {
-//      if (!orientation || orientation === 1) return resolve(src);
-//      // If the dimensions already reflect the rotated state, skip reapplying it
-//      if (orientation > 4 && height > width) return resolve(src);
-//=======
   // Rotate the image data according to its EXIF orientation
-  const orientImageSrc = (src, orientation) =>
+  const orientImageSrc = (src, orientation, width, height) =>
     new Promise((resolve) => {
       if (!orientation || orientation === 1) return resolve(src);
-//>>>>>>> main
+      // Skip rotation if the image dimensions already match the oriented state
+      if (orientation > 4 && height > width) return resolve(src);
 
       const img = new Image();
       img.onload = () => {
