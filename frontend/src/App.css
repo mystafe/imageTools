@@ -34,6 +34,16 @@
   gap: 1em;
 }
 
+.size-controls {
+  display: flex;
+  gap: 1em;
+}
+
+.keep-ratio {
+  display: flex;
+  align-items: center;
+}
+
 .presets {
   display: flex;
   justify-content: center;
@@ -120,16 +130,13 @@
 /* overlay shown on active image for navigating to next image */
 .next-overlay {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  padding: 0.6em 1.2em;
-  border-radius: 8px;
+  inset: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  border-radius: 12px;
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
   pointer-events: none;
@@ -142,14 +149,15 @@
 }
 
 .next-icon {
-  font-size: 2rem;
+  font-size: 2.5rem;
   line-height: 1;
   animation: bounce 1s infinite;
 }
 
 .next-text {
-  font-size: 0.8rem;
+  font-size: 1rem;
   margin-top: 0.2em;
+  font-weight: 600;
 }
 
 
@@ -244,6 +252,11 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .size-controls {
+    flex-direction: row;
+    align-items: center;
   }
 
   .controls input {
