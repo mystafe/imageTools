@@ -19,6 +19,7 @@ function App() {
   const [showSvgCode, setShowSvgCode] = useState(false);
   const [fileLabel, setFileLabel] = useState('Choose File(s)');
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -402,6 +403,7 @@ function App() {
 
   const downloadPDF = async () => {
     if (!images.length) return;
+    setLoading(true);
     const temp = new jsPDF();
     const pageWidth = temp.internal.pageSize.getWidth();
     const margin = 5;
@@ -421,16 +423,20 @@ function App() {
 
     const pdf = new jsPDF({ unit: 'mm', format: [pageWidth, totalHeight] });
     let y = margin;
-    for (const img of images) {
-      const { width, height } = getOrientedDimensions(img);
-      const imgHeight = (height / width) * imgWidth;
-      const fmt = img.src.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
-      const src = await orientImageSrc(img.src, img.orientation);
-      pdf.addImage(src, fmt, margin, y, imgWidth, imgHeight);
-      y += imgHeight + margin;
+    try {
+      for (const img of images) {
+        const { width, height } = getOrientedDimensions(img);
+        const imgHeight = (height / width) * imgWidth;
+        const fmt = img.src.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
+        const src = await orientImageSrc(img.src, img.orientation);
+        pdf.addImage(src, fmt, margin, y, imgWidth, imgHeight);
+        y += imgHeight + margin;
+      }
+      pdf.save(`${fileName || 'images'}.pdf`);
+      setMessage('PDF created successfully!');
+    } finally {
+      setLoading(false);
     }
-    pdf.save(`${fileName || 'images'}.pdf`);
-    setMessage('PDF created successfully!');
   };
 
   return (
@@ -541,6 +547,11 @@ function App() {
         </>
       )}
       <canvas ref={canvasRef} style={{ display: 'none' }} />
+      {loading && (
+        <div className="loading-overlay fade-in">
+          <div className="spinner" />
+        </div>
+      )}
       {message && (
         <div className="message fade-in">
           {message}
