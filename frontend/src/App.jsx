@@ -27,31 +27,42 @@ function App() {
     }
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    if (orientation === 6 || orientation === 8) {
+    if (orientation > 4) {
       canvas.width = img.height;
       canvas.height = img.width;
     } else {
       canvas.width = img.width;
       canvas.height = img.height;
     }
+    const w = canvas.width;
+    const h = canvas.height;
     switch (orientation) {
+      case 2:
+        ctx.transform(-1, 0, 0, 1, w, 0);
+        break;
       case 3:
-        ctx.translate(canvas.width, canvas.height);
-        ctx.rotate(Math.PI);
+        ctx.transform(-1, 0, 0, -1, w, h);
+        break;
+      case 4:
+        ctx.transform(1, 0, 0, -1, 0, h);
+        break;
+      case 5:
+        ctx.transform(0, 1, 1, 0, 0, 0);
         break;
       case 6:
-        ctx.translate(canvas.width, 0);
-        ctx.rotate(Math.PI / 2);
+        ctx.transform(0, 1, -1, 0, h, 0);
+        break;
+      case 7:
+        ctx.transform(0, -1, -1, 0, h, w);
         break;
       case 8:
-        ctx.translate(0, canvas.height);
-        ctx.rotate(-Math.PI / 2);
+        ctx.transform(0, -1, 1, 0, 0, w);
         break;
       default:
         break;
     }
     ctx.drawImage(img, 0, 0);
-    return { src: canvas.toDataURL(), width: canvas.width, height: canvas.height };
+    return { src: canvas.toDataURL(), width: w, height: h };
   };
 
   const handleFileChange = (e) => {
@@ -399,7 +410,8 @@ function App() {
             <button onClick={() => { setWidth('512'); setHeight('512'); }}>512x512</button>
             <button onClick={() => { setWidth('196'); setHeight('196'); }}>196x196</button>
             <button onClick={() => { setWidth('64'); setHeight('64'); }}>64x64</button>
-          </div>
+            <button onClick={() => { setWidth('1024'); setHeight('768'); }}>1024x768</button>
+         </div>
           <div className="preview-stack">
             {images.map((img, idx) => {
               const offset = (idx - currentIndex + images.length) % images.length;
