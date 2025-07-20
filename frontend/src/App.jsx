@@ -400,15 +400,24 @@ function App() {
     const pageWidth = temp.internal.pageSize.getWidth();
     const margin = 5;
     const imgWidth = pageWidth - margin * 2;
-    const totalHeight = images.reduce(
-      (sum, img) => sum + (img.height / img.width) * imgWidth + margin,
-      margin,
-    );
+
+    const getOrientedDimensions = (img) => {
+      if (img.orientation && img.orientation > 4) {
+        return { width: img.height, height: img.width };
+      }
+      return { width: img.width, height: img.height };
+    };
+
+    const totalHeight = images.reduce((sum, img) => {
+      const { width, height } = getOrientedDimensions(img);
+      return sum + (height / width) * imgWidth + margin;
+    }, margin);
 
     const pdf = new jsPDF({ unit: 'mm', format: [pageWidth, totalHeight] });
     let y = margin;
     for (const img of images) {
-      const imgHeight = (img.height / img.width) * imgWidth;
+      const { width, height } = getOrientedDimensions(img);
+      const imgHeight = (height / width) * imgWidth;
       const fmt = img.src.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
       const src = await orientImageSrc(img.src, img.orientation);
       pdf.addImage(src, fmt, margin, y, imgWidth, imgHeight);
