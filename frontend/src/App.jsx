@@ -238,26 +238,6 @@ function App() {
     setMessage('JPG download complete!');
   };
 
-  const downloadSVG = async () => {
-    if (!images.length) return;
-    const targets = images.length > 1 ? images : [images[currentIndex]];
-    for (let i = 0; i < targets.length; i++) {
-      const img = targets[i];
-      await drawImageToCanvas(img.src);
-      const canvas = canvasRef.current;
-      const imgd = ImageTracer.getImgdata(canvas);
-      const svgString = ImageTracer.imagedataToSVG(imgd);
-      const blob = new Blob([svgString], { type: 'image/svg+xml' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      const suffix = targets.length > 1 ? `-${i + 1}` : '';
-      a.download = `${fileName || 'image'}${suffix}.svg`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-    setMessage('SVG download complete!');
-  };
 
   const generateSVGCode = async () => {
     if (!images.length) return;
@@ -540,7 +520,6 @@ function App() {
           <div className="buttons">
             <button onClick={downloadPNG}>Download PNG</button>
             <button onClick={downloadJPG}>Download JPG</button>
-            <button onClick={downloadSVG}>Download SVG</button>
             <button onClick={downloadICO}>Download ICO</button>
             <button onClick={downloadPDF}>Download PDF</button>
             <button onClick={downloadReactAssets}>Download React Assets</button>
