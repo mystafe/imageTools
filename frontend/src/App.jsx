@@ -134,6 +134,14 @@ function App() {
     }
   };
 
+  const handlePreviewClick = (index) => {
+    if (index === currentIndex) {
+      goToNextImage();
+    } else {
+      handleImageClick(index);
+    }
+  };
+
   const handleWidthChange = (e) => {
     const value = e.target.value;
     if (keepRatio && value !== '') {
@@ -393,25 +401,27 @@ function App() {
       {images.length > 0 && (
         <>
           <div className="controls">
-            <label>
-              Width: <input type="number" value={width} onChange={handleWidthChange} />
-            </label>
-            <label>
-              Height: <input type="number" value={height} onChange={handleHeightChange} />
-            </label>
-            <label>
-              <input type="checkbox" checked={keepRatio} onChange={handleKeepRatioChange} /> Keep ratio
-            </label>
-            <label>
+            <div className="size-controls">
+              <label>
+                Width: <input type="number" value={width} onChange={handleWidthChange} />
+              </label>
+              <label>
+                Height: <input type="number" value={height} onChange={handleHeightChange} />
+              </label>
+              <label className="keep-ratio">
+                <input type="checkbox" checked={keepRatio} onChange={handleKeepRatioChange} /> Keep ratio
+              </label>
+            </div>
+            <label className="filename-label">
               File name: <input type="text" value={fileName} onChange={(e) => setFileName(e.target.value)} />
             </label>
           </div>
           <div className="presets">
+            <button onClick={() => { setWidth('1024'); setHeight('768'); }}>1024x768</button>
             <button onClick={() => { setWidth('512'); setHeight('512'); }}>512x512</button>
             <button onClick={() => { setWidth('196'); setHeight('196'); }}>196x196</button>
             <button onClick={() => { setWidth('64'); setHeight('64'); }}>64x64</button>
-            <button onClick={() => { setWidth('1024'); setHeight('768'); }}>1024x768</button>
-         </div>
+          </div>
           <div className="preview-stack">
             {images.map((img, idx) => {
               const offset = (idx - currentIndex + images.length) % images.length;
@@ -419,7 +429,7 @@ function App() {
                 <div
                   key={idx}
                   className={`preview-wrapper${offset === 0 ? ' active' : ''}`}
-                  onClick={() => handleImageClick(idx)}
+                  onClick={() => handlePreviewClick(idx)}
                   style={{
                     zIndex: images.length - offset,
                     transform:
