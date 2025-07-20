@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "exif-js": "^2.3.0",
-    "heic2any": "^0.0.4",
+    "heic-to": "^1.2.1",
     "imagetracerjs": "^1.2.6",
     "jspdf": "^2.5.1",
     "jszip": "^3.10.1",
