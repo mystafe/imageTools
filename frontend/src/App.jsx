@@ -4,6 +4,7 @@ import pkg from '../package.json';
 import ImageTracer from 'imagetracerjs';
 import JSZip from 'jszip';
 import { jsPDF } from 'jspdf';
+import heic2any from 'heic2any';
 import './App.css';
 
 function App() {
@@ -70,36 +71,53 @@ function App() {
     if (files.length === 0) return;
 
     Promise.all(
-      files.map(
-        (file) =>
-          new Promise((res) => {
-            const url = URL.createObjectURL(file);
-            const img = new Image();
-            img.onload = () => {
-              EXIF.getData(file, function () {
-                const orientation = EXIF.getTag(this, 'Orientation') || 1;
-                const make = EXIF.getTag(this, 'Make') || '';
-                const model = EXIF.getTag(this, 'Model') || '';
-                const fixed = fixOrientation(img, orientation);
-                res({
-                  src: fixed.src,
-                  width: fixed.width,
-                  height: fixed.height,
-                  ratio: fixed.width / fixed.height,
-                  name: file.name,
-                  type: file.type,
-                  size: file.size,
-                  lastModified: file.lastModified,
-                  device: `${make} ${model}`.trim() || 'Unknown',
-                });
+      files.map(async (file) => {
+        let f = file;
+        if (
+          file.type === 'image/heic' ||
+          file.type === 'image/heif' ||
+          /\.(heic|heif)$/i.test(file.name)
+        ) {
+          try {
+            const blob = await heic2any({ blob: file, toType: 'image/jpeg' });
+            f = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), {
+              type: 'image/jpeg',
+              lastModified: file.lastModified,
+            });
+          } catch (err) {
+            console.error('HEIC conversion failed', err);
+            return null;
+          }
+        }
+
+        return new Promise((res) => {
+          const url = URL.createObjectURL(f);
+          const img = new Image();
+          img.onload = () => {
+            EXIF.getData(f, function () {
+              const orientation = EXIF.getTag(this, 'Orientation') || 1;
+              const make = EXIF.getTag(this, 'Make') || '';
+              const model = EXIF.getTag(this, 'Model') || '';
+              const fixed = fixOrientation(img, orientation);
+              res({
+                src: fixed.src,
+                width: fixed.width,
+                height: fixed.height,
+                ratio: fixed.width / fixed.height,
+                name: f.name,
+                type: f.type,
+                size: f.size,
+                lastModified: f.lastModified,
+                device: `${make} ${model}`.trim() || 'Unknown',
               });
-            };
-            img.onerror = () => {
-              res(null);
-            };
-            img.src = url;
-          }),
-      ),
+            });
+          };
+          img.onerror = () => {
+            res(null);
+          };
+          img.src = url;
+        });
+      }),
     ).then((imgs) => {
       const loaded = imgs.filter(Boolean);
       if (!loaded.length) return;

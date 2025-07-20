@@ -5,6 +5,7 @@ This repository contains a simple React application for converting images to PNG
 The app lets you:
 
 - Upload one or more images from your computer
+- HEIC images are automatically converted for preview
 - Choose a resolution for the output
 - Download the current image as PNG, JPG, SVG or ICO
 - Generate and copy the SVG code to the clipboard
