@@ -121,47 +121,68 @@ function App() {
 
   const downloadPNG = async () => {
     if (!images.length) return;
-    await drawImageToCanvas();
-    const canvas = canvasRef.current;
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${fileName || 'image'}.png`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }, 'image/png');
+    const targets = images.length > 1 ? images : [images[currentIndex]];
+    for (let i = 0; i < targets.length; i++) {
+      const img = targets[i];
+      await drawImageToCanvas(img.src);
+      const canvas = canvasRef.current;
+      await new Promise((res) => {
+        canvas.toBlob((blob) => {
+          if (!blob) return res();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          const suffix = targets.length > 1 ? `-${i + 1}` : '';
+          a.download = `${fileName || 'image'}${suffix}.png`;
+          a.click();
+          URL.revokeObjectURL(url);
+          res();
+        }, 'image/png');
+      });
+    }
   };
 
   const downloadJPG = async () => {
     if (!images.length) return;
-    await drawImageToCanvas();
-    const canvas = canvasRef.current;
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${fileName || 'image'}.jpg`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }, 'image/jpeg');
+    const targets = images.length > 1 ? images : [images[currentIndex]];
+    for (let i = 0; i < targets.length; i++) {
+      const img = targets[i];
+      await drawImageToCanvas(img.src);
+      const canvas = canvasRef.current;
+      await new Promise((res) => {
+        canvas.toBlob((blob) => {
+          if (!blob) return res();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          const suffix = targets.length > 1 ? `-${i + 1}` : '';
+          a.download = `${fileName || 'image'}${suffix}.jpg`;
+          a.click();
+          URL.revokeObjectURL(url);
+          res();
+        }, 'image/jpeg');
+      });
+    }
   };
 
   const downloadSVG = async () => {
     if (!images.length) return;
-    await drawImageToCanvas();
-    const canvas = canvasRef.current;
-    const imgd = ImageTracer.getImgdata(canvas);
-    const svgString = ImageTracer.imagedataToSVG(imgd);
-    const blob = new Blob([svgString], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${fileName || 'image'}.svg`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const targets = images.length > 1 ? images : [images[currentIndex]];
+    for (let i = 0; i < targets.length; i++) {
+      const img = targets[i];
+      await drawImageToCanvas(img.src);
+      const canvas = canvasRef.current;
+      const imgd = ImageTracer.getImgdata(canvas);
+      const svgString = ImageTracer.imagedataToSVG(imgd);
+      const blob = new Blob([svgString], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const suffix = targets.length > 1 ? `-${i + 1}` : '';
+      a.download = `${fileName || 'image'}${suffix}.svg`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
   };
 
   const generateSVGCode = async () => {
@@ -185,22 +206,31 @@ function App() {
 
   const downloadICO = async () => {
     if (!images.length) return;
-    await drawImageToCanvas();
-    const canvas = canvasRef.current;
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${fileName || 'image'}.ico`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }, 'image/x-icon');
+    const targets = images.length > 1 ? images : [images[currentIndex]];
+    for (let i = 0; i < targets.length; i++) {
+      const img = targets[i];
+      await drawImageToCanvas(img.src);
+      const canvas = canvasRef.current;
+      await new Promise((res) => {
+        canvas.toBlob((blob) => {
+          if (!blob) return res();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          const suffix = targets.length > 1 ? `-${i + 1}` : '';
+          a.download = `${fileName || 'image'}${suffix}.ico`;
+          a.click();
+          URL.revokeObjectURL(url);
+          res();
+        }, 'image/x-icon');
+      });
+    }
   };
 
   const downloadReactAssets = async () => {
     if (!images.length) return;
 
+    const targets = images.length > 1 ? images : [images[currentIndex]];
     const zip = new JSZip();
     const assets = [
       { width: 512, height: 512, name: 'logo512.png', type: 'image/png' },
@@ -208,24 +238,28 @@ function App() {
       { width: 32, height: 32, name: 'favicon.ico', type: 'image/x-icon' }
     ];
 
-    for (const asset of assets) {
-      await drawImageToCanvas(undefined, asset.width, asset.height);
-      const canvas = canvasRef.current;
-      await new Promise((res) => {
-        canvas.toBlob(async (blob) => {
-          if (!blob) return res();
-          const buf = await blob.arrayBuffer();
-          zip.file(asset.name, buf);
-          res();
-        }, asset.type);
-      });
-    }
+    for (let i = 0; i < targets.length; i++) {
+      const img = targets[i];
+      const folder = targets.length > 1 ? zip.folder(`img-${i + 1}`) : zip;
+      for (const asset of assets) {
+        await drawImageToCanvas(img.src, asset.width, asset.height);
+        const canvas = canvasRef.current;
+        await new Promise((res) => {
+          canvas.toBlob(async (blob) => {
+            if (!blob) return res();
+            const buf = await blob.arrayBuffer();
+            folder.file(asset.name, buf);
+            res();
+          }, asset.type);
+        });
+      }
 
-    await drawImageToCanvas();
-    const canvas = canvasRef.current;
-    const imgd = ImageTracer.getImgdata(canvas);
-    const svgString = ImageTracer.imagedataToSVG(imgd);
-    zip.file('logo.svg', svgString);
+      await drawImageToCanvas(img.src);
+      const canvas = canvasRef.current;
+      const imgd = ImageTracer.getImgdata(canvas);
+      const svgString = ImageTracer.imagedataToSVG(imgd);
+      folder.file('logo.svg', svgString);
+    }
 
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     const url = URL.createObjectURL(zipBlob);
@@ -260,7 +294,10 @@ function App() {
 
   return (
     <div className="container">
-      <h1>Image Converter</h1>
+      <h1 className="title">
+        Image Converter
+        <span className="version">v1.0</span>
+      </h1>
       <input type="file" accept="image/*" multiple onChange={handleFileChange} />
       {images.length > 0 && (
         <>
@@ -299,16 +336,18 @@ function App() {
                       offset === 0
                         ? 'translateX(0)'
                         : offset === 1
-                          ? 'translateX(30px) scale(0.9)'
-                          : `translateX(${offset * 20}px) scale(0.9)`,
+                          ? 'translateX(40px) scale(0.9)'
+                          : `translateX(${offset * 30}px) scale(0.9)`,
                   }}
                 />
               );
             })}
           </div>
-          <button onClick={goToNextImage} className="next-btn">
-            Next
-          </button>
+          {images.length > 1 && (
+            <button onClick={goToNextImage} className="next-btn">
+              Next
+            </button>
+          )}
           <div className="buttons">
             <button onClick={downloadPNG}>Download PNG</button>
             <button onClick={downloadJPG}>Download JPG</button>

@@ -9,6 +9,24 @@
   backdrop-filter: blur(8px);
 }
 
+.title {
+  position: relative;
+  display: inline-block;
+}
+
+.title .version {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.8rem;
+}
+
+.title:hover .version {
+  display: block;
+}
+
 .controls {
   margin: 1em 0;
   display: flex;
@@ -69,6 +87,7 @@
   display: flex;
   justify-content: center;
   gap: 1em;
+  flex-wrap: wrap;
 }
 
 .next-btn {
