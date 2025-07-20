@@ -355,10 +355,18 @@ function App() {
     setMessage('React assets downloaded!');
   };
 
+//<<<<<<< ryop6i-codex/fix-pdf-generation-direction-on-mobile
+//  const orientImageSrc = (src, orientation, width, height) =>
+//    new Promise((resolve) => {
+//      if (!orientation || orientation === 1) return resolve(src);
+//      // If the dimensions already reflect the rotated state, skip reapplying it
+//      if (orientation > 4 && height > width) return resolve(src);
+//=======
   // Rotate the image data according to its EXIF orientation
   const orientImageSrc = (src, orientation) =>
     new Promise((resolve) => {
       if (!orientation || orientation === 1) return resolve(src);
+//>>>>>>> main
 
       const img = new Image();
       img.onload = () => {
@@ -417,7 +425,7 @@ function App() {
     const imgWidth = pageWidth - margin * 2;
 
     const getOrientedDimensions = (img) => {
-      if (img.orientation && img.orientation > 4) {
+      if (img.orientation && img.orientation > 4 && img.width > img.height) {
         return { width: img.height, height: img.width };
       }
       return { width: img.width, height: img.height };
@@ -435,7 +443,12 @@ function App() {
         const { width, height } = getOrientedDimensions(img);
         const imgHeight = (height / width) * imgWidth;
         const fmt = img.src.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
-        const src = await orientImageSrc(img.src, img.orientation);
+        const src = await orientImageSrc(
+          img.src,
+          img.orientation,
+          img.width,
+          img.height,
+        );
         pdf.addImage(src, fmt, margin, y, imgWidth, imgHeight);
         y += imgHeight + margin;
       }
