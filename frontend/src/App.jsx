@@ -56,6 +56,7 @@ function App() {
           const img = new Image();
           img.onload = () => {
             EXIF.getData(f, function () {
+              const orientation = EXIF.getTag(this, 'Orientation') || 1;
               const make = EXIF.getTag(this, 'Make') || '';
               const model = EXIF.getTag(this, 'Model') || '';
               const fixed = fixOrientation(img);
@@ -64,6 +65,7 @@ function App() {
                 width: fixed.width,
                 height: fixed.height,
                 ratio: fixed.width / fixed.height,
+                orientation,
                 name: f.name,
                 type: f.type,
                 size: f.size,
@@ -344,6 +346,54 @@ function App() {
     setMessage('React assets downloaded!');
   };
 
+  const orientImageSrc = (src, orientation) =>
+    new Promise((resolve) => {
+      if (!orientation || orientation === 1) return resolve(src);
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (orientation > 4) {
+          canvas.width = img.height;
+          canvas.height = img.width;
+        } else {
+          canvas.width = img.width;
+          canvas.height = img.height;
+        }
+        const w = canvas.width;
+        const h = canvas.height;
+        switch (orientation) {
+          case 2:
+            ctx.transform(-1, 0, 0, 1, w, 0);
+            break;
+          case 3:
+            ctx.transform(-1, 0, 0, -1, w, h);
+            break;
+          case 4:
+            ctx.transform(1, 0, 0, -1, 0, h);
+            break;
+          case 5:
+            ctx.transform(0, 1, 1, 0, 0, 0);
+            break;
+          case 6:
+            ctx.transform(0, 1, -1, 0, h, 0);
+            break;
+          case 7:
+            ctx.transform(0, -1, -1, 0, h, w);
+            break;
+          case 8:
+            ctx.transform(0, -1, 1, 0, 0, w);
+            break;
+          default:
+            break;
+        }
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL());
+      };
+      img.onerror = () => resolve(src);
+      img.src = src;
+    });
+
   const downloadPDF = async () => {
     if (!images.length) return;
     const temp = new jsPDF();
@@ -357,12 +407,13 @@ function App() {
 
     const pdf = new jsPDF({ unit: 'mm', format: [pageWidth, totalHeight] });
     let y = margin;
-    images.forEach((img) => {
+    for (const img of images) {
       const imgHeight = (img.height / img.width) * imgWidth;
       const fmt = img.src.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
-      pdf.addImage(img.src, fmt, margin, y, imgWidth, imgHeight);
+      const src = await orientImageSrc(img.src, img.orientation);
+      pdf.addImage(src, fmt, margin, y, imgWidth, imgHeight);
       y += imgHeight + margin;
-    });
+    }
     pdf.save(`${fileName || 'images'}.pdf`);
     setMessage('PDF created successfully!');
   };
