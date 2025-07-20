@@ -360,6 +360,11 @@ function App() {
       if (!orientation || orientation === 1) return resolve(src);
       const img = new Image();
       img.onload = () => {
+        // If the loaded image already reflects the EXIF rotation, skip
+        // applying it again. This happens on many mobile browsers.
+        const alreadyCorrect = orientation > 4 && img.width < img.height;
+        if (alreadyCorrect) return resolve(src);
+
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         if (orientation > 4) {
@@ -411,8 +416,10 @@ function App() {
     const margin = 5;
     const imgWidth = pageWidth - margin * 2;
 
+    const alreadyCorrect = (img) => img.orientation > 4 && img.width < img.height;
+
     const getOrientedDimensions = (img) => {
-      if (img.orientation && img.orientation > 4) {
+      if (img.orientation && img.orientation > 4 && !alreadyCorrect(img)) {
         return { width: img.height, height: img.width };
       }
       return { width: img.width, height: img.height };
