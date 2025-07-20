@@ -436,10 +436,10 @@ function App() {
                     className={`preview-img fade-in${offset === 0 ? ' active' : ''}`}
                   />
                   <div className="preview-info">
-                    {img.width}x{img.height} | {img.type.split('/')[1] || 'N/A'} |
+                    {img.width}x{img.height} |
                     {(img.size / 1024).toFixed(1)}KB
                     <br />
-                    {new Date(img.lastModified).toLocaleDateString()} - {img.device}
+                    {img.name}
                   </div>
                 </div>
               );
