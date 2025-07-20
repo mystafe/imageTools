@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import EXIF from 'exif-js';
 import ImageTracer from 'imagetracerjs';
 import JSZip from 'jszip';
 import { jsPDF } from 'jspdf';
@@ -12,8 +13,9 @@ function App() {
   const [keepRatio, setKeepRatio] = useState(true);
   const [ratio, setRatio] = useState(1);
   const [fileName, setFileName] = useState('image');
-  const [svgCode, setSvgCode] = useState('');
+  const [svgCodes, setSvgCodes] = useState([]);
   const [showSvgCode, setShowSvgCode] = useState(false);
+  const [fileLabel, setFileLabel] = useState('Choose File(s)');
   const [message, setMessage] = useState('');
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
@@ -30,11 +32,20 @@ function App() {
             reader.onload = () => {
               const img = new Image();
               img.onload = () => {
-                res({
-                  src: reader.result,
-                  width: img.width,
-                  height: img.height,
-                  ratio: img.width / img.height,
+                EXIF.getData(file, function () {
+                  const make = EXIF.getTag(this, 'Make') || '';
+                  const model = EXIF.getTag(this, 'Model') || '';
+                  res({
+                    src: reader.result,
+                    width: img.width,
+                    height: img.height,
+                    ratio: img.width / img.height,
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    lastModified: file.lastModified,
+                    device: `${make} ${model}`.trim() || 'Unknown',
+                  });
                 });
               };
               img.src = reader.result;
@@ -49,6 +60,9 @@ function App() {
       setWidth(String(first.width));
       setHeight(String(first.height));
       setRatio(first.ratio);
+      setSvgCodes([]);
+      setShowSvgCode(false);
+      setFileLabel('Choose Another');
     });
   };
 
@@ -192,19 +206,24 @@ function App() {
 
   const generateSVGCode = async () => {
     if (!images.length) return;
-    await drawImageToCanvas();
-    const canvas = canvasRef.current;
-    const imgd = ImageTracer.getImgdata(canvas);
-    const svgString = ImageTracer.imagedataToSVG(imgd);
-    setSvgCode(svgString);
+    const codes = [];
+    for (const img of images) {
+      await drawImageToCanvas(img.src);
+      const canvas = canvasRef.current;
+      const imgd = ImageTracer.getImgdata(canvas);
+      const svgString = ImageTracer.imagedataToSVG(imgd);
+      codes.push(svgString);
+    }
+    setSvgCodes(codes);
     setShowSvgCode(true);
     setMessage('SVG code generated!');
   };
 
-  const copySVGToClipboard = async () => {
-    if (!svgCode) return;
+  const copySVGToClipboard = async (idx) => {
+    const code = svgCodes[idx];
+    if (!code) return;
     try {
-      await navigator.clipboard.writeText(svgCode);
+      await navigator.clipboard.writeText(code);
       setMessage('SVG copied to clipboard!');
     } catch (err) {
       console.error('Failed to copy', err);
@@ -319,7 +338,7 @@ function App() {
         onChange={handleFileChange}
         style={{ display: 'none' }}
       />
-      <label htmlFor="file-input" className="file-label">Choose Files</label>
+      <label htmlFor="file-input" className="file-label">{fileLabel}</label>
       {images.length > 0 && (
         <>
           <div className="controls">
@@ -345,11 +364,9 @@ function App() {
             {images.map((img, idx) => {
               const offset = (idx - currentIndex + images.length) % images.length;
               return (
-                <img
+                <div
                   key={idx}
-                  src={img.src}
-                  alt={`preview-${idx}`}
-                  className={`preview-img fade-in${offset === 0 ? ' active' : ''}`}
+                  className="preview-wrapper"
                   onClick={() => handleImageClick(idx)}
                   style={{
                     zIndex: images.length - offset,
@@ -360,7 +377,19 @@ function App() {
                           ? 'translateX(40px) scale(0.9)'
                           : `translateX(${offset * 30}px) scale(0.9)`,
                   }}
-                />
+                >
+                  <img
+                    src={img.src}
+                    alt={`preview-${idx}`}
+                    className={`preview-img fade-in${offset === 0 ? ' active' : ''}`}
+                  />
+                  <div className="preview-info">
+                    {img.width}x{img.height} | {img.type.split('/')[1] || 'N/A'} |
+                    {(img.size / 1024).toFixed(1)}KB
+                    <br />
+                    {new Date(img.lastModified).toLocaleDateString()} - {img.device}
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -380,14 +409,14 @@ function App() {
           </div>
           {showSvgCode && (
             <div className="svg-code-container fade-in">
-              <button className="copy-btn" onClick={copySVGToClipboard}>
-                📋 Copy
-              </button>
-              <textarea
-                className="svg-code"
-                value={svgCode}
-                readOnly
-              />
+              {svgCodes.map((code, i) => (
+                <div key={i} className="svg-block">
+                  <button className="copy-btn" onClick={() => copySVGToClipboard(i)}>
+                    📋 Copy
+                  </button>
+                  <textarea className="svg-code" value={code} readOnly />
+                </div>
+              ))}
             </div>
           )}
         </>
