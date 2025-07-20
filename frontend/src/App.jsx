@@ -22,6 +22,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
   // Keep the original orientation of the image without any transformation.
   // Browsers already display images according to the EXIF orientation tag, so
@@ -430,7 +431,9 @@ function App() {
         const { width, height } = getOrientedDimensions(img);
         const imgHeight = (height / width) * imgWidth;
         const fmt = img.src.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
-        const src = await orientImageSrc(img.src, img.orientation);
+        const src = isMobile
+          ? img.src
+          : await orientImageSrc(img.src, img.orientation);
         pdf.addImage(src, fmt, margin, y, imgWidth, imgHeight);
         y += imgHeight + margin;
       }
