@@ -4,7 +4,7 @@ import pkg from '../package.json';
 import ImageTracer from 'imagetracerjs';
 import JSZip from 'jszip';
 import { jsPDF } from 'jspdf';
-import heic2any from 'heic2any';
+import { heicTo } from 'heic-to';
 import './App.css';
 
 function App() {
@@ -79,7 +79,7 @@ function App() {
           /\.(heic|heif)$/i.test(file.name)
         ) {
           try {
-            const blob = await heic2any({ blob: file, toType: 'image/jpeg' });
+            const blob = await heicTo({ blob: file, type: 'image/jpeg' });
             f = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), {
               type: 'image/jpeg',
               lastModified: file.lastModified,
