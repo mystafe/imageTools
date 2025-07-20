@@ -73,33 +73,33 @@ function App() {
       files.map(
         (file) =>
           new Promise((res) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-              const img = new Image();
-              img.onload = () => {
-                EXIF.getData(img, function () {
-                  const orientation = EXIF.getTag(this, 'Orientation') || 1;
-                  const make = EXIF.getTag(this, 'Make') || '';
-                  const model = EXIF.getTag(this, 'Model') || '';
-                  const fixed = fixOrientation(img, orientation);
-                  res({
-                    src: fixed.src,
-                    width: fixed.width,
-                    height: fixed.height,
-                    ratio: fixed.width / fixed.height,
-                    name: file.name,
-                    type: file.type,
-                    size: file.size,
-                    lastModified: file.lastModified,
-                    device: `${make} ${model}`.trim() || 'Unknown',
-                  });
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            img.onload = () => {
+              EXIF.getData(file, function () {
+                const orientation = EXIF.getTag(this, 'Orientation') || 1;
+                const make = EXIF.getTag(this, 'Make') || '';
+                const model = EXIF.getTag(this, 'Model') || '';
+                const fixed = fixOrientation(img, orientation);
+                res({
+                  src: fixed.src,
+                  width: fixed.width,
+                  height: fixed.height,
+                  ratio: fixed.width / fixed.height,
+                  name: file.name,
+                  type: file.type,
+                  size: file.size,
+                  lastModified: file.lastModified,
+                  device: `${make} ${model}`.trim() || 'Unknown',
                 });
-              };
-              img.onerror = () => res(null);
-              img.src = reader.result;
+                URL.revokeObjectURL(url);
+              });
             };
-            reader.onerror = () => res(null);
-            reader.readAsDataURL(file);
+            img.onerror = () => {
+              URL.revokeObjectURL(url);
+              res(null);
+            };
+            img.src = url;
           }),
       ),
     ).then((imgs) => {
@@ -144,8 +144,9 @@ function App() {
 
   const handleWidthChange = (e) => {
     const value = e.target.value;
+    const num = parseInt(value);
+    if (!isNaN(num) && num < 0) return;
     if (keepRatio && value !== '') {
-      const num = parseInt(value);
       if (!isNaN(num)) {
         setHeight(String(Math.round(num / ratio)));
       }
@@ -167,8 +168,9 @@ function App() {
 
   const handleHeightChange = (e) => {
     const value = e.target.value;
+    const num = parseInt(value);
+    if (!isNaN(num) && num < 0) return;
     if (keepRatio && value !== '') {
-      const num = parseInt(value);
       if (!isNaN(num)) {
         setWidth(String(Math.round(num * ratio)));
       }
@@ -403,10 +405,10 @@ function App() {
           <div className="controls">
             <div className="size-controls">
               <label>
-                Width: <input type="number" value={width} onChange={handleWidthChange} />
+                Width: <input type="number" min="1" value={width} onChange={handleWidthChange} />
               </label>
               <label>
-                Height: <input type="number" value={height} onChange={handleHeightChange} />
+                Height: <input type="number" min="1" value={height} onChange={handleHeightChange} />
               </label>
               <label className="keep-ratio">
                 <input type="checkbox" checked={keepRatio} onChange={handleKeepRatioChange} /> Keep ratio
@@ -453,8 +455,7 @@ function App() {
                         goToNextImage();
                       }}
                     >
-                      <div className="next-icon">➡️</div>
-                      <div className="next-text">Next</div>
+                      <div className="next-icon">&raquo;&raquo;</div>
                     </div>
                   )}
                   <div className="preview-info">
@@ -471,10 +472,10 @@ function App() {
             <button onClick={downloadPNG}>Download PNG</button>
             <button onClick={downloadJPG}>Download JPG</button>
             <button onClick={downloadSVG}>Download SVG</button>
-            <button onClick={generateSVGCode}>SVG Kodu Göster</button>
             <button onClick={downloadICO}>Download ICO</button>
-            <button onClick={downloadReactAssets}>Download React Assets</button>
             <button onClick={downloadPDF}>Download PDF</button>
+            <button onClick={downloadReactAssets}>Download React Assets</button>
+            <button onClick={generateSVGCode}>SVG Kodu Göster</button>
           </div>
           {showSvgCode && (
             <div className="svg-code-container fade-in">
