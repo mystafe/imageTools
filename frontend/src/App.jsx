@@ -22,48 +22,9 @@ function App() {
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
 
-  const fixOrientation = (img, orientation) => {
-    if (orientation === 1) {
-      return { src: img.src, width: img.width, height: img.height };
-    }
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (orientation > 4) {
-      canvas.width = img.height;
-      canvas.height = img.width;
-    } else {
-      canvas.width = img.width;
-      canvas.height = img.height;
-    }
-    const w = canvas.width;
-    const h = canvas.height;
-    switch (orientation) {
-      case 2:
-        ctx.transform(-1, 0, 0, 1, w, 0);
-        break;
-      case 3:
-        ctx.transform(-1, 0, 0, -1, w, h);
-        break;
-      case 4:
-        ctx.transform(1, 0, 0, -1, 0, h);
-        break;
-      case 5:
-        ctx.transform(0, 1, 1, 0, 0, 0);
-        break;
-      case 6:
-        ctx.transform(0, 1, -1, 0, h, 0);
-        break;
-      case 7:
-        ctx.transform(0, -1, -1, 0, h, w);
-        break;
-      case 8:
-        ctx.transform(0, -1, 1, 0, 0, w);
-        break;
-      default:
-        break;
-    }
-    ctx.drawImage(img, 0, 0);
-    return { src: canvas.toDataURL(), width: w, height: h };
+  // Keep the original orientation of the image without any transformation
+  const fixOrientation = (img) => {
+    return { src: img.src, width: img.width, height: img.height };
   };
 
   const handleFileChange = (e) => {
@@ -95,10 +56,9 @@ function App() {
           const img = new Image();
           img.onload = () => {
             EXIF.getData(f, function () {
-              const orientation = EXIF.getTag(this, 'Orientation') || 1;
               const make = EXIF.getTag(this, 'Make') || '';
               const model = EXIF.getTag(this, 'Model') || '';
-              const fixed = fixOrientation(img, orientation);
+              const fixed = fixOrientation(img);
               res({
                 src: fixed.src,
                 width: fixed.width,

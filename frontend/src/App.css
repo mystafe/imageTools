@@ -148,9 +148,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(90deg, #646cff, #de52ff);
-  background-size: 200% 100%;
-  color: #fff;
+  /* make overlay transparent so it doesn't cover the image */
+  background: none;
   border-radius: 12px;
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
@@ -167,7 +166,8 @@
   font-size: 2.5rem;
   line-height: 1;
   animation: slide-bg 3s linear infinite;
-  background: inherit;
+  background: linear-gradient(90deg, #646cff, #de52ff);
+  background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
