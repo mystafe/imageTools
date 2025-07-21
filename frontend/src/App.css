@@ -333,6 +333,10 @@
     align-items: center;
   }
 
+  .size-controls label {
+    flex: 1;
+  }
+
   .controls input {
     width: 100%;
   }
