@@ -405,7 +405,8 @@ function App() {
 
     const totalHeight = images.reduce((sum, img) => {
       const { width, height } = getOrientedDimensions(img);
-      return sum + (height / width) * imgWidth + margin;
+      const scale = Math.min(imgWidth / width, 1);
+      return sum + height * scale + margin;
     }, margin);
 
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pageWidth, totalHeight] });
@@ -413,11 +414,14 @@ function App() {
     try {
       for (const img of images) {
         const { width, height } = getOrientedDimensions(img);
-        const imgHeight = (height / width) * imgWidth;
+        const scale = Math.min(imgWidth / width, 1);
+        const w = width * scale;
+        const h = height * scale;
+        const x = (pageWidth - w) / 2;
         const fmt = img.src.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
         const src = await orientImageSrc(img.src, img.orientation);
-        pdf.addImage(src, fmt, margin, y, imgWidth, imgHeight);
-        y += imgHeight + margin;
+        pdf.addImage(src, fmt, x, y, w, h);
+        y += h + margin;
       }
       pdf.save(`${fileName || 'images'}.pdf`);
       setMessage('PDF created successfully!');
