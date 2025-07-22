@@ -23,12 +23,51 @@ function App() {
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
 
-  // Keep the original orientation of the image without any transformation.
-  // Browsers already display images according to the EXIF orientation tag, so
-  // we simply return the source and dimensions as-is.
-  const fixOrientation = (img) => {
+  // Return the image source and dimensions adjusted for its EXIF orientation.
+  // This ensures width/height reflect the orientation shown in browsers.
+  const fixOrientation = (img, orientation) => {
+    if (orientation && orientation > 4) {
+      return { src: img.src, width: img.height, height: img.width };
+    }
     return { src: img.src, width: img.width, height: img.height };
   };
+
+  // Read the EXIF orientation value directly from a File.
+  const getOrientation = (file) =>
+    new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const view = new DataView(e.target.result);
+        if (view.getUint16(0, false) !== 0xffd8) return resolve(1);
+        let offset = 2;
+        const length = view.byteLength;
+        while (offset < length) {
+          const marker = view.getUint16(offset, false);
+          offset += 2;
+          if (marker === 0xffe1) {
+            offset += 2;
+            if (view.getUint32(offset, false) !== 0x45786966) break;
+            offset += 6;
+            const little = view.getUint16(offset, false) === 0x4949;
+            offset += view.getUint32(offset + 4, little);
+            const tags = view.getUint16(offset, little);
+            offset += 2;
+            for (let i = 0; i < tags; i++) {
+              if (view.getUint16(offset + i * 12, little) === 0x0112) {
+                return resolve(view.getUint16(offset + i * 12 + 8, little));
+              }
+            }
+          } else if ((marker & 0xff00) !== 0xff00) {
+            break;
+          } else {
+            offset += view.getUint16(offset, false);
+          }
+        }
+        return resolve(1);
+      };
+      reader.onerror = () => resolve(1);
+      reader.readAsArrayBuffer(file);
+    });
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
@@ -54,15 +93,15 @@ function App() {
           }
         }
 
+        const orientation = await getOrientation(f);
         return new Promise((res) => {
           const url = URL.createObjectURL(f);
           const img = new Image();
           img.onload = () => {
             EXIF.getData(f, function () {
-              const orientation = EXIF.getTag(this, 'Orientation') || 1;
               const make = EXIF.getTag(this, 'Make') || '';
               const model = EXIF.getTag(this, 'Model') || '';
-              const fixed = fixOrientation(img);
+              const fixed = fixOrientation(img, orientation);
               res({
                 src: fixed.src,
                 width: fixed.width,
@@ -397,15 +436,13 @@ function App() {
     const imgWidth = pageWidth - margin * 2;
 
     const getOrientedDimensions = (img) => {
-      if (img.orientation && img.orientation > 4) {
-        return { width: img.height, height: img.width };
-      }
       return { width: img.width, height: img.height };
     };
 
     const totalHeight = images.reduce((sum, img) => {
       const { width, height } = getOrientedDimensions(img);
-      return sum + (height / width) * imgWidth + margin;
+      const scale = Math.min(imgWidth / width, 1);
+      return sum + height * scale + margin;
     }, margin);
 
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pageWidth, totalHeight] });
@@ -413,11 +450,14 @@ function App() {
     try {
       for (const img of images) {
         const { width, height } = getOrientedDimensions(img);
-        const imgHeight = (height / width) * imgWidth;
+        const scale = Math.min(imgWidth / width, 1);
+        const w = width * scale;
+        const h = height * scale;
+        const x = (pageWidth - w) / 2;
         const fmt = img.src.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
         const src = await orientImageSrc(img.src, img.orientation);
-        pdf.addImage(src, fmt, margin, y, imgWidth, imgHeight);
-        y += imgHeight + margin;
+        pdf.addImage(src, fmt, x, y, w, h);
+        y += h + margin;
       }
       pdf.save(`${fileName || 'images'}.pdf`);
       setMessage('PDF created successfully!');
