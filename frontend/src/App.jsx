@@ -360,7 +360,9 @@ function App() {
   const downloadPDF = async () => {
     if (!images.length) return;
     setLoading(true);
-    const temp = new jsPDF({ orientation: 'portrait' });
+    const isLandscape = images.length === 1 && images[0].width > images[0].height;
+    const orientation = isLandscape ? 'landscape' : 'portrait';
+    const temp = new jsPDF({ orientation });
     const pageWidth = temp.internal.pageSize.getWidth();
     const margin = 5;
     const imgWidth = pageWidth - margin * 2;
@@ -376,7 +378,7 @@ function App() {
       return sum + height * scale + margin;
     }, margin);
 
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pageWidth, totalHeight] });
+    const pdf = new jsPDF({ orientation, unit: 'mm', format: [pageWidth, totalHeight] });
     let y = margin;
     try {
       for (const img of images) {
