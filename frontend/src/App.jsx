@@ -5,6 +5,7 @@ import ImageTracer from 'imagetracerjs';
 import JSZip from 'jszip';
 import { jsPDF } from 'jspdf';
 import { heicTo } from 'heic-to';
+import { orientation as getExifOrientation } from 'exifr';
 import './App.css';
 
 function App() {
@@ -32,42 +33,14 @@ function App() {
     height: img.height,
   });
 
-  // Read the EXIF orientation value directly from a File.
-  const getOrientation = (file) =>
-    new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const view = new DataView(e.target.result);
-        if (view.getUint16(0, false) !== 0xffd8) return resolve(1);
-        let offset = 2;
-        const length = view.byteLength;
-        while (offset < length) {
-          const marker = view.getUint16(offset, false);
-          offset += 2;
-          if (marker === 0xffe1) {
-            offset += 2;
-            if (view.getUint32(offset, false) !== 0x45786966) break;
-            offset += 6;
-            const little = view.getUint16(offset, false) === 0x4949;
-            offset += view.getUint32(offset + 4, little);
-            const tags = view.getUint16(offset, little);
-            offset += 2;
-            for (let i = 0; i < tags; i++) {
-              if (view.getUint16(offset + i * 12, little) === 0x0112) {
-                return resolve(view.getUint16(offset + i * 12 + 8, little));
-              }
-            }
-          } else if ((marker & 0xff00) !== 0xff00) {
-            break;
-          } else {
-            offset += view.getUint16(offset, false);
-          }
-        }
-        return resolve(1);
-      };
-      reader.onerror = () => resolve(1);
-      reader.readAsArrayBuffer(file);
-    });
+  // Extract the EXIF orientation using the exifr library.
+  const getOrientation = async (file) => {
+    try {
+      return (await getExifOrientation(file)) || 1;
+    } catch {
+      return 1;
+    }
+  };
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
@@ -76,6 +49,7 @@ function App() {
     Promise.all(
       files.map(async (file) => {
         let f = file;
+        let orientation = await getOrientation(file);
         if (
           file.type === 'image/heic' ||
           file.type === 'image/heif' ||
@@ -92,8 +66,6 @@ function App() {
             return null;
           }
         }
-
-        const orientation = await getOrientation(f);
         return new Promise((res) => {
           const url = URL.createObjectURL(f);
           const img = new Image();
