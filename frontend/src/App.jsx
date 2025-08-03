@@ -4,12 +4,10 @@ import ImageConverter from './ImageConverter.jsx';
 import VideoConverter from './VideoConverter.jsx';
 
 function App() {
-  const [mode, setMode] = useState(null);
   const [initImages, setInitImages] = useState(null);
   const [initVideo, setInitVideo] = useState(null);
 
   const resetHome = () => {
-    setMode(null);
     setInitImages(null);
     setInitVideo(null);
   };
@@ -18,7 +16,6 @@ function App() {
     const files = e.target.files;
     if (files && files.length) {
       setInitImages(files);
-      setMode('image');
     }
     e.target.value = '';
   };
@@ -27,15 +24,14 @@ function App() {
     const file = e.target.files[0];
     if (file) {
       setInitVideo(file);
-      setMode('video');
     }
     e.target.value = '';
   };
 
-  if (mode === 'image') {
+  if (initImages) {
     return <ImageConverter onHome={resetHome} initialFiles={initImages} />;
   }
-  if (mode === 'video') {
+  if (initVideo) {
     return <VideoConverter onHome={resetHome} initialFile={initVideo} />;
   }
 
