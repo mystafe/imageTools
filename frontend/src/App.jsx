@@ -6,6 +6,7 @@ import JSZip from 'jszip';
 import { jsPDF } from 'jspdf';
 import { heicTo } from 'heic-to';
 import './App.css';
+import VideoConverter from './VideoConverter.jsx';
 
 function App() {
   const [images, setImages] = useState([]);
@@ -518,6 +519,7 @@ function App() {
           <button className="reset-btn" onClick={() => window.location.reload()}>Baştan Başla</button>
         </div>
       )}
+      <VideoConverter />
       <p className="credits">developed by Mustafa Evleksiz</p>
     </div>
   );
