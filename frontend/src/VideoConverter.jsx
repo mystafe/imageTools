@@ -151,7 +151,7 @@ export default function VideoConverter({ onHome, initialFile }) {
   const handleMainDownload = () => {
     const preset = {
       ...qualityPresets.medium,
-      video: { ...qualityPresets.medium.video, resolution: 'original' },
+      video: { ...qualityPresets.medium.video, resolution: 'original', preset: 'fast' },
     };
     convert(preset);
   };
@@ -232,7 +232,7 @@ export default function VideoConverter({ onHome, initialFile }) {
         id="video-input"
         ref={fileInputRef}
         type="file"
-        accept="video/*"
+        accept="video/*,.mkv"
         onChange={handleFileChange}
         style={{ display: 'none' }}
       />
@@ -266,7 +266,7 @@ export default function VideoConverter({ onHome, initialFile }) {
             <div className="preview-wrapper active">
               <video
                 src={videoURL}
-                className="preview-img active"
+                className="preview-img active" controls
                 playsInline
                 onClick={(e) => {
                   const vid = e.target;
@@ -298,15 +298,6 @@ export default function VideoConverter({ onHome, initialFile }) {
       )}
       {loading && (
         <div className="loading-overlay video-loading fade-in">
-          {videoURL && (
-            <video
-              src={videoURL}
-              className="loading-video"
-              controls
-              autoPlay
-              muted
-            />
-          )}
           <div className="loading-text">
             {stage} {progress}%
             {eta && ` · ETA ${eta}`}
