@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile } from '@ffmpeg/util';
 
@@ -38,7 +38,7 @@ const qualityPresets = {
   },
 };
 
-export default function VideoConverter({ onHome }) {
+export default function VideoConverter({ onHome, initialFile }) {
   const [videoFile, setVideoFile] = useState(null);
   const [videoURL, setVideoURL] = useState('');
   const [width, setWidth] = useState('');
@@ -50,6 +50,7 @@ export default function VideoConverter({ onHome }) {
   const [showMore, setShowMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fileLabel, setFileLabel] = useState('Choose Video');
+  const [fileName, setFileName] = useState('video');
   const fileInputRef = useRef(null);
 
   const loadFFmpeg = async () => {
@@ -94,7 +95,7 @@ export default function VideoConverter({ onHome }) {
     const url = URL.createObjectURL(new Blob([data], { type: 'video/mp4' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'video.mp4';
+    a.download = `${fileName}.mp4`;
     a.click();
     setLoading(false);
   };
@@ -115,6 +116,7 @@ export default function VideoConverter({ onHome }) {
     setVideoFile(file);
     setVideoURL(url);
     setFileLabel('Choose Another');
+    setFileName(file.name.replace(/\.[^/.]+$/, ''));
     const vid = document.createElement('video');
     vid.preload = 'metadata';
     vid.onloadedmetadata = () => {
@@ -164,10 +166,17 @@ export default function VideoConverter({ onHome }) {
     setKeepRatio(false);
   };
 
+  useEffect(() => {
+    if (initialFile) {
+      handleFileChange({ target: { files: [initialFile] } });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialFile]);
+
   return (
     <div className="container">
       <h1 className="title">Video Converter</h1>
-      <button className="home-btn reset-btn" onClick={onHome}>Anasayfa</button>
+      <button className="home-btn reset-btn" onClick={onHome} aria-label="Anasayfa">🏠</button>
       <input
         id="video-input"
         ref={fileInputRef}
@@ -179,11 +188,6 @@ export default function VideoConverter({ onHome }) {
       <label htmlFor="video-input" className="file-label">{fileLabel}</label>
       {videoFile && (
         <>
-          <div className="preview-stack">
-            <div className="preview-wrapper active">
-              <video src={videoURL} className="preview-img active" controls />
-            </div>
-          </div>
           <div className="controls">
             <div className="size-controls">
               <label>
@@ -196,6 +200,9 @@ export default function VideoConverter({ onHome }) {
                 <input type="checkbox" checked={keepRatio} onChange={handleKeepRatioChange} /> Keep ratio
               </label>
             </div>
+            <label className="filename-label">
+              File name: <input type="text" value={fileName} onChange={(e) => setFileName(e.target.value)} />
+            </label>
           </div>
           <div className="presets">
             <button onClick={() => applyPreset(origWidth, origHeight)}>Original</button>
@@ -204,6 +211,16 @@ export default function VideoConverter({ onHome }) {
                 {r.label}
               </button>
             ))}
+          </div>
+          <div className="preview-stack">
+            <div className="preview-wrapper active">
+              <video src={videoURL} className="preview-img active" />
+              <div className="preview-info">
+                {origWidth}x{origHeight} | {(videoFile.size / 1024 / 1024).toFixed(1)}MB
+                <br />
+                {videoFile.name}
+              </div>
+            </div>
           </div>
           <div className="buttons">
             <button onClick={handleMainDownload}>Download</button>
@@ -220,7 +237,12 @@ export default function VideoConverter({ onHome }) {
           )}
         </>
       )}
-      {loading && <p>Processing...</p>}
+      {loading && (
+        <div className="loading-overlay fade-in">
+          <div className="spinner" />
+          <div className="loading-text">Processing...</div>
+        </div>
+      )}
     </div>
   );
 }

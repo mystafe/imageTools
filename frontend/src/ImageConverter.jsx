@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import EXIF from './libs/exif.js';
 import pkg from '../package.json';
 import ImageTracer from 'imagetracerjs';
@@ -7,7 +7,7 @@ import { jsPDF } from 'jspdf';
 import { heicTo } from 'heic-to';
 import './App.css';
 
-function ImageConverter({ onHome }) {
+function ImageConverter({ onHome, initialFiles }) {
   const [images, setImages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [width, setWidth] = useState('300');
@@ -98,6 +98,13 @@ function ImageConverter({ onHome }) {
       setFileLabel('Choose Another');
     });
   };
+
+  useEffect(() => {
+    if (initialFiles && initialFiles.length) {
+      handleFileChange({ target: { files: initialFiles } });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialFiles]);
 
   const handleImageClick = (index) => {
     setCurrentIndex(index);
@@ -405,7 +412,7 @@ function ImageConverter({ onHome }) {
         Image Converter
         <span className="version">v{pkg.version}</span>
       </h1>
-      <button className="home-btn reset-btn" onClick={onHome}>Anasayfa</button>
+      <button className="home-btn reset-btn" onClick={onHome} aria-label="Anasayfa">🏠</button>
       <input
         id="file-input"
         ref={fileInputRef}
