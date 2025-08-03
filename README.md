@@ -1,4 +1,4 @@
-# Image Tools
+# Media Tools
 
 This repository contains a simple React application for converting images to PNG, SVG and ICO formats.
 
