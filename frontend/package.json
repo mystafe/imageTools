@@ -10,12 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.4",
+    "@ffmpeg/util": "^0.12.2",
     "exif-js": "^2.3.0",
     "heic-to": "^1.2.1",
     "imagetracerjs": "^1.2.6",
     "jspdf": "^2.5.1",
     "jszip": "^3.10.1",
-    "@ffmpeg/ffmpeg": "^0.12.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
