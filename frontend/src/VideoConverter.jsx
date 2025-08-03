@@ -1,14 +1,14 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile } from '@ffmpeg/util';
 
 const ffmpeg = new FFmpeg();
 
 const resolutionPresets = [
-  { key: 'fullhd', label: 'FULL HD 1080p', width: 1920, height: 1080 },
-  { key: 'hdplus', label: 'HD+ 900p', width: 1600, height: 900 },
-  { key: 'hd', label: 'HD 720p', width: 1280, height: 720 },
-  { key: 'sd', label: 'SD 480p', width: 640, height: 480 },
+  { label: 'FULL HD 1080p', width: 1920, height: 1080 },
+  { label: 'HD+ 900p', width: 1600, height: 900 },
+  { label: 'HD 720p', width: 1280, height: 720 },
+  { label: 'SD 480p', width: 640, height: 480 },
 ];
 
 const qualityPresets = {
@@ -40,9 +40,16 @@ const qualityPresets = {
 
 export default function VideoConverter() {
   const [videoFile, setVideoFile] = useState(null);
-  const [resKey, setResKey] = useState('fullhd');
+  const [width, setWidth] = useState('');
+  const [height, setHeight] = useState('');
+  const [keepRatio, setKeepRatio] = useState(true);
+  const [ratio, setRatio] = useState(1);
+  const [origWidth, setOrigWidth] = useState(0);
+  const [origHeight, setOrigHeight] = useState(0);
   const [showMore, setShowMore] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fileLabel, setFileLabel] = useState('Choose Video');
+  const fileInputRef = useRef(null);
 
   const loadFFmpeg = async () => {
     if (!ffmpeg.loaded) {
@@ -59,12 +66,14 @@ export default function VideoConverter() {
     const args = ['-i', 'input'];
     const { video, audio, extra } = preset;
 
+    let targetWidth = parseInt(width);
+    let targetHeight = parseInt(height);
     if (video.resolution && video.resolution !== 'original') {
-      args.push('-vf', `scale=${video.resolution}`);
-    } else {
-      const sel = resolutionPresets.find((r) => r.key === resKey);
-      args.push('-vf', `scale=${sel.width}:${sel.height}`);
+      const [pw, ph] = video.resolution.split('x').map(Number);
+      targetWidth = pw;
+      targetHeight = ph;
     }
+    args.push('-vf', `scale=${targetWidth}:${targetHeight}`);
     if (video.codec) args.push('-c:v', video.codec);
     if (video.crf !== undefined) args.push('-crf', String(video.crf));
     if (video.preset) args.push('-preset', video.preset);
@@ -90,34 +99,109 @@ export default function VideoConverter() {
   };
 
   const handleMainDownload = () => {
-    const preset = { ...qualityPresets.medium, video: { ...qualityPresets.medium.video } };
-    const sel = resolutionPresets.find((r) => r.key === resKey);
-    preset.video.resolution = `${sel.width}:${sel.height}`;
+    const preset = {
+      ...qualityPresets.medium,
+      video: { ...qualityPresets.medium.video, resolution: 'original' },
+    };
     convert(preset);
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) setVideoFile(file);
+    if (!file) return;
+    setVideoFile(file);
+    setFileLabel('Choose Another');
+    const url = URL.createObjectURL(file);
+    const vid = document.createElement('video');
+    vid.preload = 'metadata';
+    vid.onloadedmetadata = () => {
+      URL.revokeObjectURL(vid.src);
+      const w = vid.videoWidth;
+      const h = vid.videoHeight;
+      setWidth(String(w));
+      setHeight(String(h));
+      setRatio(w / h);
+      setOrigWidth(w);
+      setOrigHeight(h);
+    };
+    vid.src = url;
+  };
+
+  const handleWidthChange = (e) => {
+    const value = e.target.value;
+    const num = parseInt(value);
+    if (keepRatio && !isNaN(num)) {
+      setHeight(String(Math.round(num / ratio)));
+    }
+    setWidth(value);
+  };
+
+  const handleHeightChange = (e) => {
+    const value = e.target.value;
+    const num = parseInt(value);
+    if (keepRatio && !isNaN(num)) {
+      setWidth(String(Math.round(num * ratio)));
+    }
+    setHeight(value);
+  };
+
+  const handleKeepRatioChange = (e) => {
+    const checked = e.target.checked;
+    if (checked) {
+      setWidth(String(origWidth));
+      setHeight(String(origHeight));
+      setRatio(origWidth / origHeight);
+    }
+    setKeepRatio(checked);
+  };
+
+  const applyPreset = (w, h) => {
+    setWidth(String(w));
+    setHeight(String(h));
+    setKeepRatio(false);
   };
 
   return (
     <div className="video-converter">
       <h2>Video Converter</h2>
-      <input type="file" accept="video/*" onChange={handleFileChange} />
+      <input
+        id="video-input"
+        ref={fileInputRef}
+        type="file"
+        accept="video/*"
+        onChange={handleFileChange}
+        style={{ display: 'none' }}
+      />
+      <label htmlFor="video-input" className="file-label">{fileLabel}</label>
       {videoFile && (
-        <div className="video-options">
-          <select value={resKey} onChange={(e) => setResKey(e.target.value)}>
+        <>
+          <div className="controls">
+            <div className="size-controls">
+              <label>
+                Width: <input type="number" min="1" value={width} onChange={handleWidthChange} />
+              </label>
+              <label>
+                Height: <input type="number" min="1" value={height} onChange={handleHeightChange} />
+              </label>
+              <label className="keep-ratio">
+                <input type="checkbox" checked={keepRatio} onChange={handleKeepRatioChange} /> Keep ratio
+              </label>
+            </div>
+          </div>
+          <div className="presets">
+            <button onClick={() => applyPreset(origWidth, origHeight)}>Original</button>
             {resolutionPresets.map((r) => (
-              <option key={r.key} value={r.key}>
+              <button key={r.label} onClick={() => applyPreset(r.width, r.height)}>
                 {r.label}
-              </option>
+              </button>
             ))}
-          </select>
-          <button onClick={handleMainDownload}>Download</button>
-          <button onClick={() => setShowMore((s) => !s)}>Ek Download Seçenekleri</button>
+          </div>
+          <div className="buttons">
+            <button onClick={handleMainDownload}>Download</button>
+            <button onClick={() => setShowMore((s) => !s)}>Ek Download Seçenekleri</button>
+          </div>
           {showMore && (
-            <div className="quality-options">
+            <div className="buttons quality-options">
               {Object.entries(qualityPresets).map(([key, p]) => (
                 <button key={key} onClick={() => convert(p)}>
                   {p.label}
@@ -125,7 +209,7 @@ export default function VideoConverter() {
               ))}
             </div>
           )}
-        </div>
+        </>
       )}
       {loading && <p>Processing...</p>}
     </div>
