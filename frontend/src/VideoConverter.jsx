@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile } from '@ffmpeg/util';
 
-const ffmpeg = createFFmpeg({ log: false });
+const ffmpeg = new FFmpeg();
 
 const resolutionPresets = [
   { key: 'fullhd', label: 'FULL HD 1080p', width: 1920, height: 1080 },
@@ -44,7 +45,7 @@ export default function VideoConverter() {
   const [loading, setLoading] = useState(false);
 
   const loadFFmpeg = async () => {
-    if (!ffmpeg.isLoaded()) {
+    if (!ffmpeg.loaded) {
       await ffmpeg.load();
     }
   };
@@ -53,7 +54,7 @@ export default function VideoConverter() {
     if (!videoFile) return;
     setLoading(true);
     await loadFFmpeg();
-    ffmpeg.FS('writeFile', 'input', await fetchFile(videoFile));
+    await ffmpeg.writeFile('input', await fetchFile(videoFile));
 
     const args = ['-i', 'input'];
     const { video, audio, extra } = preset;
@@ -78,9 +79,9 @@ export default function VideoConverter() {
 
     args.push('output.mp4');
 
-    await ffmpeg.run(...args);
-    const data = ffmpeg.FS('readFile', 'output.mp4');
-    const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+    await ffmpeg.exec(args);
+    const data = await ffmpeg.readFile('output.mp4');
+    const url = URL.createObjectURL(new Blob([data], { type: 'video/mp4' }));
     const a = document.createElement('a');
     a.href = url;
     a.download = 'video.mp4';
