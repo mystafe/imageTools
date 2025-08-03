@@ -38,8 +38,9 @@ const qualityPresets = {
   },
 };
 
-export default function VideoConverter() {
+export default function VideoConverter({ onHome }) {
   const [videoFile, setVideoFile] = useState(null);
+  const [videoURL, setVideoURL] = useState('');
   const [width, setWidth] = useState('');
   const [height, setHeight] = useState('');
   const [keepRatio, setKeepRatio] = useState(true);
@@ -109,9 +110,11 @@ export default function VideoConverter() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setVideoFile(file);
-    setFileLabel('Choose Another');
+    if (videoURL) URL.revokeObjectURL(videoURL);
     const url = URL.createObjectURL(file);
+    setVideoFile(file);
+    setVideoURL(url);
+    setFileLabel('Choose Another');
     const vid = document.createElement('video');
     vid.preload = 'metadata';
     vid.onloadedmetadata = () => {
@@ -162,8 +165,9 @@ export default function VideoConverter() {
   };
 
   return (
-    <div className="video-converter">
-      <h2>Video Converter</h2>
+    <div className="container">
+      <h1 className="title">Video Converter</h1>
+      <button className="home-btn reset-btn" onClick={onHome}>Anasayfa</button>
       <input
         id="video-input"
         ref={fileInputRef}
@@ -175,6 +179,11 @@ export default function VideoConverter() {
       <label htmlFor="video-input" className="file-label">{fileLabel}</label>
       {videoFile && (
         <>
+          <div className="preview-stack">
+            <div className="preview-wrapper active">
+              <video src={videoURL} className="preview-img active" controls />
+            </div>
+          </div>
           <div className="controls">
             <div className="size-controls">
               <label>
