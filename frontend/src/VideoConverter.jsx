@@ -55,6 +55,38 @@ export default function VideoConverter({ onHome, initialFile }) {
   const [eta, setEta] = useState('');
   const startTimeRef = useRef(0);
   const fileInputRef = useRef(null);
+  const [logs, setLogs] = useState([]);
+  const logRef = useRef(null);
+  const log = (msg) => {
+    setLogs((prev) => [...prev, msg]);
+    // scroll to bottom on new messages
+    requestAnimationFrame(() => {
+      if (logRef.current) {
+        logRef.current.scrollTop = logRef.current.scrollHeight;
+      }
+    });
+  };
+
+  const processOnServer = async (preset) => {
+    log('Tarayıcıda işleme desteklenmiyor, sunucuda işlenecektir.');
+    log('Sunucuya yükleniyor...');
+    try {
+      const formData = new FormData();
+      formData.append('file', videoFile);
+      formData.append('preset', JSON.stringify(preset));
+      const res = await fetch('/api/convert', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('Sunucu hatası');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${fileName}.mp4`;
+      a.click();
+      log('Sunucuda işleme tamamlandı.');
+    } catch (err) {
+      log(`Sunucuda işleme başarısız: ${err.message}`);
+    }
+  };
 
   const loadFFmpeg = async () => {
     if (!ffmpeg.loaded) {
@@ -84,11 +116,23 @@ export default function VideoConverter({ onHome, initialFile }) {
 
   const convert = async (preset) => {
     if (!videoFile) return;
+    if (typeof SharedArrayBuffer === 'undefined') {
+      await processOnServer(preset);
+      return;
+    }
+    log('Processing on device...');
     setLoading(true);
     setStage('Uploading');
     setProgress(0);
     setEta('');
-    await loadFFmpeg();
+    try {
+      await loadFFmpeg();
+    } catch {
+      await processOnServer(preset);
+      setLoading(false);
+      setStage('');
+      return;
+    }
     const inputData = await readFileWithProgress(videoFile, setProgress);
     const inputExt = videoFile.name.split('.').pop().toLowerCase();
     const inputName = `input.${inputExt}`;
@@ -314,6 +358,13 @@ export default function VideoConverter({ onHome, initialFile }) {
           <div className="loading-progress">
             <div style={{ width: `${progress}%` }} />
           </div>
+        </div>
+      )}
+      {logs.length > 0 && (
+        <div className="process-log" ref={logRef}>
+          {logs.map((l, i) => (
+            <div key={i}>{l}</div>
+          ))}
         </div>
       )}
     </div>
