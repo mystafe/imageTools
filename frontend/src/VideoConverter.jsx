@@ -175,8 +175,11 @@ export default function VideoConverter({ onHome, initialFile }) {
 
   return (
     <div className="container">
-      <h1 className="title">Video Converter</h1>
-      <button className="home-btn reset-btn" onClick={onHome} aria-label="Anasayfa">🏠</button>
+      <div className="top-bar">
+        <h1 className="title">Video Converter</h1>
+        <label htmlFor="video-input" className="file-label">{fileLabel}</label>
+        <button className="home-btn reset-btn" onClick={onHome} aria-label="Anasayfa">🏠</button>
+      </div>
       <input
         id="video-input"
         ref={fileInputRef}
@@ -185,7 +188,6 @@ export default function VideoConverter({ onHome, initialFile }) {
         onChange={handleFileChange}
         style={{ display: 'none' }}
       />
-      <label htmlFor="video-input" className="file-label">{fileLabel}</label>
       {videoFile && (
         <>
           <div className="controls">
@@ -214,7 +216,16 @@ export default function VideoConverter({ onHome, initialFile }) {
           </div>
           <div className="preview-stack">
             <div className="preview-wrapper active">
-              <video src={videoURL} className="preview-img active" />
+              <video
+                src={videoURL}
+                className="preview-img active"
+                playsInline
+                onClick={(e) => {
+                  const vid = e.target;
+                  if (vid.paused) vid.play();
+                  else vid.pause();
+                }}
+              />
               <div className="preview-info">
                 {origWidth}x{origHeight} | {(videoFile.size / 1024 / 1024).toFixed(1)}MB
                 <br />
