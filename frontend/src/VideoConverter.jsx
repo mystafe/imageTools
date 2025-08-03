@@ -52,6 +52,8 @@ export default function VideoConverter({ onHome, initialFile }) {
   const [fileName, setFileName] = useState('video');
   const [progress, setProgress] = useState(0);
   const [stage, setStage] = useState('');
+  const [eta, setEta] = useState('');
+  const startTimeRef = useRef(0);
   const fileInputRef = useRef(null);
 
   const loadFFmpeg = async () => {
@@ -73,23 +75,40 @@ export default function VideoConverter({ onHome, initialFile }) {
       reader.readAsArrayBuffer(file);
     });
 
+  const formatTime = (seconds) => {
+    const s = Math.round(seconds);
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return m ? `${m}m ${sec}s` : `${sec}s`;
+  };
+
   const convert = async (preset) => {
     if (!videoFile) return;
     setLoading(true);
     setStage('Uploading');
     setProgress(0);
+    setEta('');
     await loadFFmpeg();
     const inputData = await readFileWithProgress(videoFile, setProgress);
-    await ffmpeg.writeFile('input', inputData);
+    const inputExt = videoFile.name.split('.').pop().toLowerCase();
+    const inputName = `input.${inputExt}`;
+    await ffmpeg.writeFile(inputName, inputData);
     setStage('Converting');
     setProgress(0);
+    startTimeRef.current = Date.now();
 
     const progressHandler = ({ progress }) => {
-      setProgress(Math.round(progress * 100));
+      const pct = Math.round(progress * 100);
+      setProgress(pct);
+      if (progress > 0) {
+        const elapsed = (Date.now() - startTimeRef.current) / 1000;
+        const total = elapsed / progress;
+        setEta(formatTime(total - elapsed));
+      }
     };
     ffmpeg.on('progress', progressHandler);
 
-    const args = ['-i', 'input'];
+    const args = ['-i', inputName];
     const { video, audio, extra } = preset;
 
     let targetWidth = parseInt(width);
@@ -112,11 +131,12 @@ export default function VideoConverter({ onHome, initialFile }) {
     }
     if (extra && extra.faststart) args.push('-movflags', 'faststart');
 
-    args.push('output.mp4');
+    const outputName = 'output.mp4';
+    args.push(outputName);
 
     await ffmpeg.exec(args);
     ffmpeg.off('progress', progressHandler);
-    const data = await ffmpeg.readFile('output.mp4');
+    const data = await ffmpeg.readFile(outputName);
     const url = URL.createObjectURL(new Blob([data], { type: 'video/mp4' }));
     const a = document.createElement('a');
     a.href = url;
@@ -125,6 +145,7 @@ export default function VideoConverter({ onHome, initialFile }) {
     setLoading(false);
     setStage('');
     setProgress(0);
+    setEta('');
   };
 
   const handleMainDownload = () => {
@@ -276,13 +297,22 @@ export default function VideoConverter({ onHome, initialFile }) {
         </>
       )}
       {loading && (
-        <div className="loading-overlay fade-in">
-          <div className="spinner" />
-          <div className="loading-progress">
-            <div style={{ width: `${progress}%` }} />
-          </div>
+        <div className="loading-overlay video-loading fade-in">
+          {videoURL && (
+            <video
+              src={videoURL}
+              className="loading-video"
+              controls
+              autoPlay
+              muted
+            />
+          )}
           <div className="loading-text">
             {stage} {progress}%
+            {eta && ` · ETA ${eta}`}
+          </div>
+          <div className="loading-progress">
+            <div style={{ width: `${progress}%` }} />
           </div>
         </div>
       )}
