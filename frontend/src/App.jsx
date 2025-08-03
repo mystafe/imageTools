@@ -13,8 +13,8 @@ function App() {
   };
 
   const handleHomeImage = (e) => {
-    const files = e.target.files;
-    if (files && files.length) {
+    const files = Array.from(e.target.files || []);
+    if (files.length) {
       setInitImages(files);
     }
     e.target.value = '';
