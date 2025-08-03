@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile } from '@ffmpeg/util';
 
 const ffmpeg = new FFmpeg();
 
@@ -51,6 +50,8 @@ export default function VideoConverter({ onHome, initialFile }) {
   const [loading, setLoading] = useState(false);
   const [fileLabel, setFileLabel] = useState('Choose Video');
   const [fileName, setFileName] = useState('video');
+  const [progress, setProgress] = useState(0);
+  const [stage, setStage] = useState('');
   const fileInputRef = useRef(null);
 
   const loadFFmpeg = async () => {
@@ -59,11 +60,34 @@ export default function VideoConverter({ onHome, initialFile }) {
     }
   };
 
+  const readFileWithProgress = (file, onProgress) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(new Uint8Array(reader.result));
+      reader.onerror = reject;
+      reader.onprogress = (e) => {
+        if (e.lengthComputable) {
+          onProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
   const convert = async (preset) => {
     if (!videoFile) return;
     setLoading(true);
+    setStage('Uploading');
+    setProgress(0);
     await loadFFmpeg();
-    await ffmpeg.writeFile('input', await fetchFile(videoFile));
+    const inputData = await readFileWithProgress(videoFile, setProgress);
+    await ffmpeg.writeFile('input', inputData);
+    setStage('Converting');
+    setProgress(0);
+
+    const progressHandler = ({ progress }) => {
+      setProgress(Math.round(progress * 100));
+    };
+    ffmpeg.on('progress', progressHandler);
 
     const args = ['-i', 'input'];
     const { video, audio, extra } = preset;
@@ -91,6 +115,7 @@ export default function VideoConverter({ onHome, initialFile }) {
     args.push('output.mp4');
 
     await ffmpeg.exec(args);
+    ffmpeg.off('progress', progressHandler);
     const data = await ffmpeg.readFile('output.mp4');
     const url = URL.createObjectURL(new Blob([data], { type: 'video/mp4' }));
     const a = document.createElement('a');
@@ -98,6 +123,8 @@ export default function VideoConverter({ onHome, initialFile }) {
     a.download = `${fileName}.mp4`;
     a.click();
     setLoading(false);
+    setStage('');
+    setProgress(0);
   };
 
   const handleMainDownload = () => {
@@ -251,7 +278,12 @@ export default function VideoConverter({ onHome, initialFile }) {
       {loading && (
         <div className="loading-overlay fade-in">
           <div className="spinner" />
-          <div className="loading-text">Processing...</div>
+          <div className="loading-progress">
+            <div style={{ width: `${progress}%` }} />
+          </div>
+          <div className="loading-text">
+            {stage} {progress}%
+          </div>
         </div>
       )}
     </div>

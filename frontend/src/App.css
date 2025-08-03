@@ -281,6 +281,22 @@
   animation: spin 1s linear infinite;
 }
 
+.loading-progress {
+  width: 80%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  margin-top: 0.5em;
+  overflow: hidden;
+}
+
+.loading-progress div {
+  height: 100%;
+  background: #646cff;
+  width: 0;
+  transition: width 0.2s;
+}
+
 .loading-text {
   margin-top: 0.5em;
   font-size: 0.9em;
