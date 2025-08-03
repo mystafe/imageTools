@@ -220,6 +220,25 @@
   transform: scale(1.05);
 }
 
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  margin-bottom: 1em;
+}
+
+.top-bar .title {
+  margin-bottom: 0;
+}
+
+.top-bar .file-label {
+  margin: 0;
+}
+
+.top-bar .home-btn {
+  margin: 0 0 0 auto;
+}
+
 .message {
   margin-top: 1em;
   display: flex;

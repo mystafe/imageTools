@@ -37,6 +37,7 @@ function ImageConverter({ onHome, initialFiles }) {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
+    setLoading(true);
     Promise.all(
       files.map(async (file) => {
         let f = file;
@@ -96,6 +97,8 @@ function ImageConverter({ onHome, initialFiles }) {
       setSvgCodes([]);
       setShowSvgCode(false);
       setFileLabel('Choose Another');
+    }).finally(() => {
+      setLoading(false);
     });
   };
 
@@ -408,11 +411,14 @@ function ImageConverter({ onHome, initialFiles }) {
 
   return (
     <div className="container">
-      <h1 className="title">
-        Image Converter
-        <span className="version">v{pkg.version}</span>
-      </h1>
-      <button className="home-btn reset-btn" onClick={onHome} aria-label="Anasayfa">🏠</button>
+      <div className="top-bar">
+        <h1 className="title">
+          Image Converter
+          <span className="version">v{pkg.version}</span>
+        </h1>
+        <label htmlFor="file-input" className="file-label">{fileLabel}</label>
+        <button className="home-btn reset-btn" onClick={onHome} aria-label="Anasayfa">🏠</button>
+      </div>
       <input
         id="file-input"
         ref={fileInputRef}
@@ -422,7 +428,6 @@ function ImageConverter({ onHome, initialFiles }) {
         onChange={handleFileChange}
         style={{ display: 'none' }}
       />
-      <label htmlFor="file-input" className="file-label">{fileLabel}</label>
       {images.length > 0 && (
         <>
           <div className="controls">
