@@ -12,6 +12,7 @@ The app lets you:
 - Download React asset files as a zip containing logo512.png, logo192.png, favicon.ico and logo.svg
 - Combine all uploaded images into a single PDF file
 - Specify the output file name
+- Convert uploaded videos to different resolutions using built-in presets and quality options
 
 The React app is located in the `frontend` directory and was created using Vite.
 
